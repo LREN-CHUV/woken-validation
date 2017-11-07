@@ -1,11 +1,31 @@
+scalacOptions ++= Seq( "-unchecked", "-deprecation" )
+
 resolvers += Classpaths.sbtPluginReleases
 
-addSbtPlugin("io.spray" % "sbt-revolver" % "0.7.2")
+resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.0.1")
+// App Packaging
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
 
-addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.0.0.BETA1")
+// Dependency Resolution
+addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0-RC13")
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.13.0")
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.1")
 
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.5")
+// Code Quality
+addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.8.0") // scalastyle
+
+addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.0.4") // scapegoat
+
+addSbtPlugin("org.wartremover"   % "sbt-wartremover" % "2.1.1") // Wartremover
+
+// Code formatter
+addSbtPlugin("com.lucidchart"    % "sbt-scalafmt"    % "1.14")
+
+// Copyright headers
+addSbtPlugin("de.heikoseeberger" % "sbt-header"      % "3.0.2")
+
+// Versioning
+addSbtPlugin("com.typesafe.sbt"  % "sbt-git"         % "0.9.3")
+
+libraryDependencies += "org.slf4j" % "slf4j-nop" % "1.7.25" // Needed by sbt-git

@@ -1,10 +1,48 @@
+// *****************************************************************************
+// Projects
+// *****************************************************************************
 
-name         := "woken-validation"
+lazy val `woken-validation` =
+  project
+    .in(file("."))
+    .enablePlugins(AutomateHeaderPlugin, GitVersioning, GitBranchPrompt)
+    .settings(settings)
+    .settings(
+      Seq(
+        libraryDependencies ++= Seq(
+          library.akkaActor,
+          library.akkaRemote,
+          library.akkaCluster,
+          library.sprayJson,
+          library.scalaCheck % Test,
+          library.scalaTest  % Test
+        )
+      )
+    )
 
-version      := sys.env.get("VERSION")getOrElse("dev")
+// *****************************************************************************
+// Library dependencies
+// *****************************************************************************
 
-scalaVersion := "2.11.7"
+lazy val library =
+  new {
+    object Version {
+      val scalaCheck = "1.13.5"
+      val scalaTest  = "3.0.3"
+      val akka       = "2.3.16"
+      val sprayJson  = "1.3.4"
+    }
+    val scalaCheck: ModuleID  = "org.scalacheck"    %% "scalacheck"   % Version.scalaCheck
+    val scalaTest: ModuleID   = "org.scalatest"     %% "scalatest"    % Version.scalaTest
+    val akkaActor: ModuleID   = "com.typesafe.akka" %% "akka-actor"   % Version.akka
+    val akkaRemote: ModuleID  = "com.typesafe.akka" %% "akka-remote"  % Version.akka
+    val akkaCluster: ModuleID = "com.typesafe.akka" %% "akka-cluster" % Version.akka
+    val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
+  }
 
+// *****************************************************************************
+// Settings
+// *****************************************************************************
 
 val versions = new {
   val woken_messages = "ee60327"

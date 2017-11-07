@@ -1,39 +1,39 @@
 # Verified with http://hadolint.lukasmartinelli.ch/
 
-FROM hbpmip/scala-base-build:dc0eb54 as build-scala-env
+# Pull base image
+FROM hbpmip/scala-base-build:0.13.16-5 as scala-build-env
 
-RUN sbt about
+ARG BINTRAY_USER
+ARG BINTRAY_PASS
 
-COPY project/build.properties project/plugins.sbt /cache/dummy/project/
-WORKDIR /cache/dummy
+ENV BINTRAY_USER=$BINTRAY_USER \
+    BINTRAY_PASS=$BINTRAY_PASS
 
-USER build
-RUN sbt about
+COPY build.sbt /build/
+COPY project/ /build/project/
 
-USER root
-COPY build.sbt /my-project/
-RUN  mkdir -p /my-project/project/ && chown -R build:build /my-project/
-COPY project/ /my-project/project/
-RUN  chown -R build:build /my-project/
+# Run sbt on an empty project and force it to download most of its dependencies to fill the cache
+RUN sbt compile
 
-USER build
-WORKDIR /my-project
-RUN sbt about
+COPY src/ /build/src/
+COPY .git/ /build/.git/
+COPY .circleci/ /build/.circleci/
+COPY .*.cfg .*ignore .*.yaml .*.conf *.md *.sh *.yml *.json Dockerfile LICENSE /build/
 
-COPY src/ /my-project/src/
+RUN /check-sources.sh
 
 RUN sbt assembly
 
 FROM openjdk:8u131-jdk-alpine
 
-MAINTAINER ludovic.claude54@gmail.com
+MAINTAINER Ludovic Claude <ludovic.claude@chuv.ch>
 
 RUN mkdir -p /opt/woken-validation/config
 
 RUN adduser -H -D -u 1000 woken \
     && chown -R woken:woken /opt/woken-validation
 
-COPY --from=build-scala-env /my-project/target/scala-2.11/woken-validation-assembly-dev.jar /opt/woken-validation/woken-validation.jar
+COPY --from=scala-build-env /my-project/target/scala-2.11/woken-validation-assembly-dev.jar /opt/woken-validation/woken-validation.jar
 
 USER woken
 
@@ -43,9 +43,9 @@ LABEL org.label-schema.schema-version="1.0" \
         org.label-schema.license="Apache 2.0" \
         org.label-schema.name="woken" \
         org.label-schema.description="An orchestration platform for Docker containers running data mining algorithms" \
-        org.label-schema.url="https://github.com/LREN-CHUV/woken" \
+        org.label-schema.url="https://github.com/LREN-CHUV/woken-validation" \
         org.label-schema.vcs-type="git" \
-        org.label-schema.vcs-url="https://github.com/LREN-CHUV/woken" \
+        org.label-schema.vcs-url="https://github.com/LREN-CHUV/woken-validation" \
         org.label-schema.vendor="LREN CHUV" \
         org.label-schema.version="githash" \
         org.label-schema.docker.dockerfile="Dockerfile" \
