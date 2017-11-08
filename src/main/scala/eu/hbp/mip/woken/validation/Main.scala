@@ -1,24 +1,46 @@
+/*
+ * Copyright 2017 LREN CHUV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{Actor, ActorLogging, ActorSystem, ExtendedActorSystem, Extension, ExtensionKey, Props}
+import akka.actor.{
+  Actor,
+  ActorLogging,
+  ActorSystem,
+  ExtendedActorSystem,
+  Extension,
+  ExtensionKey,
+  Props
+}
 import akka.cluster.Cluster
-import com.opendatagroup.hadrian.datatype.{AvroDouble, AvroString}
+import com.opendatagroup.hadrian.datatype.{ AvroDouble, AvroString }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 
-import eu.hbp.mip.messages.validation.{ValidationError, ValidationQuery, ValidationResult}
+import eu.hbp.mip.woken.messages.validation.{ ValidationError, ValidationQuery, ValidationResult }
 
 // TODO This code will be common to all Akka service in containers -> put it as a small woken common lib!
 class RemotePathExtensionImpl(system: ExtendedActorSystem) extends Extension {
-  def getPath(actor: Actor) = {
+  def getPath(actor: Actor) =
     actor.self.path.toStringWithAddress(system.provider.getDefaultAddress)
-  }
 }
 object RemotePathExtension extends ExtensionKey[RemotePathExtensionImpl]
 
 class RemoteAddressExtensionImpl(system: ExtendedActorSystem) extends Extension {
-  def getAddress() = {
+  def getAddress() =
     system.provider.getDefaultAddress
-  }
 }
 object RemoteAddressExtension extends ExtensionKey[RemoteAddressExtensionImpl]
 
@@ -34,7 +56,8 @@ class ValidationActor extends Actor with ActorLogging {
         val engine = PFAEngine.fromJson(model).head
 
         val inputData = engine.jsonInputIterator[AnyRef](data.iterator)
-        val outputData : List[String] = inputData.map(x => {engine.jsonOutput(engine.action(x))}).toList
+        val outputData: List[String] =
+          inputData.map(x => { engine.jsonOutput(engine.action(x)) }).toList
         log.info("Validation work for " + fold + " done!")
 
         replyTo ! ValidationResult(fold, varInfo, outputData)
