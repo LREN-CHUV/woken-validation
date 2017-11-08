@@ -16,8 +16,9 @@ lazy val `woken-validation` =
           library.sprayJson,
           library.hadrian,
           library.wokenMessages,
-          library.scalaCheck % Test,
-          library.scalaTest  % Test
+          library.scalaCheck   % Test,
+          library.scalaTest    % Test,
+          library.akkaTestkit  % Test
         )
       )
     )
@@ -41,6 +42,7 @@ lazy val library =
     val akkaActor: ModuleID   = "com.typesafe.akka" %% "akka-actor"   % Version.akka
     val akkaRemote: ModuleID  = "com.typesafe.akka" %% "akka-remote"  % Version.akka
     val akkaCluster: ModuleID = "com.typesafe.akka" %% "akka-cluster" % Version.akka
+    val akkaTestkit: ModuleID = "com.typesafe.akka" %% "akka-testkit" % Version.akka
     val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
     val hadrian: ModuleID     = "com.opendatagroup" % "hadrian"       % Version.hadrian
     val wokenMessages: ModuleID = "eu.humanbrainproject.mip" %% "woken-messages" % Version.wokenMessages

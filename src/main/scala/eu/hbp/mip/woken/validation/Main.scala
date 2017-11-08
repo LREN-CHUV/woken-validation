@@ -20,33 +20,32 @@ import akka.actor.{
   Actor,
   ActorLogging,
   ActorSystem,
+  Address,
   ExtendedActorSystem,
   Extension,
   ExtensionKey,
   Props
 }
 import akka.cluster.Cluster
-import com.opendatagroup.hadrian.datatype.{ AvroDouble, AvroString }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
-
 import eu.hbp.mip.woken.messages.validation.{ ValidationError, ValidationQuery, ValidationResult }
 
 // TODO This code will be common to all Akka service in containers -> put it as a small woken common lib!
 class RemotePathExtensionImpl(system: ExtendedActorSystem) extends Extension {
-  def getPath(actor: Actor) =
+  def getPath(actor: Actor): String =
     actor.self.path.toStringWithAddress(system.provider.getDefaultAddress)
 }
 object RemotePathExtension extends ExtensionKey[RemotePathExtensionImpl]
 
 class RemoteAddressExtensionImpl(system: ExtendedActorSystem) extends Extension {
-  def getAddress() =
+  def getAddress(): Address =
     system.provider.getDefaultAddress
 }
 object RemoteAddressExtension extends ExtensionKey[RemoteAddressExtensionImpl]
 
 class ValidationActor extends Actor with ActorLogging {
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case ValidationQuery(fold, model, data, varInfo) ⇒
       log.info("Received validation work!")
       // Reconstruct model using hadrian and validate over the provided data
@@ -70,7 +69,7 @@ class ValidationActor extends Actor with ActorLogging {
           e.printStackTrace(new PrintWriter(sw))
           log.error("Error while validating model: " + model)
           log.error(sw.toString)
-          replyTo ! ValidationError(e.toString())
+          replyTo ! ValidationError(e.toString)
         }
       }
     case _ => log.error("Validation work not recognized!")
