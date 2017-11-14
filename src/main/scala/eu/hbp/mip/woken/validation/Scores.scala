@@ -68,7 +68,7 @@ object Scoring {
             groundTruth: List[String],
             targetMetaVariable: VariableMetaData): Scores = {
 
-    val scoring: Scoring[Scores] = targetMetaVariable.`type` match {
+    val scoring: Scoring = targetMetaVariable.`type` match {
       case "binominal"   => BinaryClassificationScoring(enumerateLabel(targetMetaVariable))
       case "polynominal" => PolynomialClassificationScoring(enumerateLabel(targetMetaVariable))
       case _             => RegressionScoring()
@@ -85,13 +85,28 @@ object Scoring {
   *
   * TODO To be tested
   * TODO Problem: BinaryClassificationMetrics does not provide confusion matrices...
-  *
+  * It should ultimately replace BinaryClassificationScoring
   */
 case class BinaryClassificationThresholdScores(metrics: List[BinaryClassificationMetrics],
                                                labels: Map[String, Double]
-                                              ) extends Scores {}
+                                              ) extends Scores {
 
-case class BinaryClassificationThresholdScoring extends Scoring {
+  /** Get the index for T = 0.5 */
+  def t_0_5: Double = metrics.head
+    .thresholds()
+    .max()(new Ordering[Double]() {
+      override def compare(x: Double, y: Double): Int =
+        if (x < 0.5) {
+          if (y < 0.5) Ordering[Double].compare(x, y)
+          else -1
+        } else if (x >= 0.5) {
+          if (y > x || y < 0.5) 1 else -1
+        } else 0
+    })
+
+}
+
+case class BinaryClassificationThresholdScoring() extends Scoring {
 
   /**
     *
@@ -135,41 +150,12 @@ case class BinaryClassificationThresholdScoring extends Scoring {
   */
 trait ClassificationScores extends Scores {
 
-  def enumeration: List[String]
-
-  var metrics: MulticlassMetrics     = _
-  var labelsMap: Map[String, Double] = _
-
-  /**
-    * @param output
-    * @param label
-    */
-  override def compute(output: List[String], label: List[String]): Unit = {
-
-    // Convert to dataframe
-    val data: List[(String, String)] = output
-      .zip(label)
-      .map({
-        case (y, f) => (y.parseJson.convertTo[String], f.parseJson.convertTo[String])
-      })
-
-    labelsMap = enumeration.zipWithIndex.map({ case (x, i) => (x, i.toDouble) }).toMap
-
-    val df = spark
-      .createDataFrame(data.map(x => { (labelsMap.get(x._1), labelsMap.get(x._2)) }))
-      .toDF("output", "label")
-
-    val predictionAndLabels =
-      df.rdd.map {
-        case Row(output_index: Double, label_index: Double) => (output_index, label_index)
-      }
-
-    metrics = new MulticlassMetrics(predictionAndLabels)
-  }
+  def metrics: MulticlassMetrics
+  def labelsMap: Map[String, Double]
 
   def matrixJson(): JsValue = {
 
-    var matrix = metrics.confusionMatrix
+    val matrix = metrics.confusionMatrix
     val labels = metrics.labels
 
     val n = labelsMap.size
@@ -180,7 +166,7 @@ trait ClassificationScores extends Scores {
     // Build the complete matrix
     for (i <- 0 until m) {
       for (j <- 0 until m) {
-        array(labels(i).toInt)(labels(j).toInt) = matrix.apply(i, j)
+        array(labels(i).toInt)(labels(j).toInt) = matrix(i, j)
       }
     }
 
@@ -189,7 +175,10 @@ trait ClassificationScores extends Scores {
       "values" -> array.toJson
     )
   }
+
 }
+
+case class PolynomialClassificationScores(override val metrics: MulticlassMetrics, override val labelsMap: Map[String, Double]) extends ClassificationScores
 
 /**
   * Wrapper around Spark MLLib's MulticlassMetrics
@@ -197,23 +186,66 @@ trait ClassificationScores extends Scores {
   * While waiting for usable BinaryClassificationThresholdScores...
   *
   */
-case class BinaryClassificationScores(enumeration: List[String])
-    extends ClassificationScores(enumeration) {
+case class BinaryClassificationScores(override val metrics: MulticlassMetrics, override val labelsMap: Map[String, Double]) extends ClassificationScores {
 
   def recall: Double =
-    metrics.confusionMatrix
-      .apply(0, 0) / (metrics.confusionMatrix.apply(0, 0) + metrics.confusionMatrix.apply(0, 1))
+    metrics.confusionMatrix(0, 0) / (metrics.confusionMatrix(0, 0) + metrics.confusionMatrix(0, 1))
 
   def precision: Double =
-    metrics.confusionMatrix
-      .apply(0, 0) / (metrics.confusionMatrix.apply(0, 0) + metrics.confusionMatrix.apply(1, 0))
+    metrics.confusionMatrix(0, 0) / (metrics.confusionMatrix(0, 0) + metrics.confusionMatrix(1, 0))
 
   def f1score: Double =
     2.0 * recall * precision / (recall + precision)
 
   def falsePositiveRate: Double =
-    metrics.confusionMatrix
-      .apply(1, 0) / (metrics.confusionMatrix.apply(1, 0) + metrics.confusionMatrix.apply(1, 1))
+    metrics.confusionMatrix(1, 0) / (metrics.confusionMatrix(1, 0) + metrics.confusionMatrix(1, 1))
+
+}
+
+
+trait ClassificationScoring[S <: ClassificationScores] extends Scoring {
+
+  def enumeration: List[String]
+
+  private[validation] def gen: (MulticlassMetrics, Map[String, Double]) => S
+
+  /**
+    * @param output
+    * @param label
+    */
+  override def compute(output: List[String], label: List[String]): ClassificationScores = {
+
+    // Convert to dataframe
+    val data: List[(String, String)] = output
+      .zip(label)
+      .map({
+        case (y, f) => (y.parseJson.convertTo[String], f.parseJson.convertTo[String])
+      })
+
+    val labelsMap = enumeration.zipWithIndex.map({ case (x, i) => (x, i.toDouble) }).toMap
+
+    val df = spark
+      .createDataFrame(data.map(x => { (labelsMap.get(x._1), labelsMap.get(x._2)) }))
+      .toDF("output", "label")
+
+    val predictionAndLabels =
+      df.rdd.map {
+        case Row(output_index: Double, label_index: Double) => (output_index, label_index)
+      }
+
+    val metrics = new MulticlassMetrics(predictionAndLabels)
+
+    gen(metrics, labelsMap)
+  }
+
+}
+
+case class PolynomialClassificationScoring(override val enumeration: List[String]) extends ClassificationScoring[PolynomialClassificationScores] {
+  private[validation] def gen = PolynomialClassificationScores.apply
+}
+
+case class BinaryClassificationScoring(override val enumeration: List[String]) extends ClassificationScoring[BinaryClassificationScores] {
+  private[validation] def gen = BinaryClassificationScores.apply
 }
 
 /**
@@ -222,13 +254,12 @@ case class BinaryClassificationScores(enumeration: List[String])
   *
   * TODO Add residual statistics
   *
-  * @param `type`
   */
-case class RegressionScores(`type`: String = "regression") extends Scores {
+case class RegressionScores(metrics: RegressionMetrics) extends Scores
 
-  var metrics: RegressionMetrics = null
+case class RegressionScoring (`type`: String = "regression") extends Scoring {
 
-  override def compute(output: List[String], label: List[String]): Unit = {
+  override def compute(output: List[String], label: List[String]): RegressionScores = {
 
     // Convert to dataframe
     val data: List[(Double, Double)] = output
@@ -241,7 +272,7 @@ case class RegressionScores(`type`: String = "regression") extends Scores {
         case Row(prediction: Double, label: Double) => (prediction, label)
       }
 
-    metrics = new RegressionMetrics(predictionAndLabels, false)
+    RegressionScores(new RegressionMetrics(predictionAndLabels, false))
   }
 }
 
@@ -263,17 +294,7 @@ object ScoresProtocol extends DefaultJsonProtocol {
 
       // TODO Put this in BinaryClassificationThresholdScores
       // Get the index for T = 0.5
-      val t_0_5 = s.metrics.head
-        .thresholds()
-        .max()(new Ordering[Double]() {
-          override def compare(x: Double, y: Double): Int =
-            if (x < 0.5) {
-              if (y < 0.5) Ordering[Double].compare(x, y)
-              else -1
-            } else if (x >= 0.5) {
-              if (y > x || y < 0.5) 1 else -1
-            } else 0
-        })
+      val t_0_5 = s.t_0_5
 
       JsObject(
         // Accuracy for T = 0.5

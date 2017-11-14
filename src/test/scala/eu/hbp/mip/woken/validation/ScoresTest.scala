@@ -1,6 +1,6 @@
-package eu.hbp.mip.woken.core.validation
+package eu.hbp.mip.woken.validation
 
-import org.scalactic.TolerantNumerics
+import org.scalactic.{Equality, TolerantNumerics}
 import org.scalatest.{FlatSpec, Matchers}
 
 class ScoresTest extends FlatSpec with Matchers {
@@ -9,9 +9,9 @@ class ScoresTest extends FlatSpec with Matchers {
 
     import ScoresProtocol._
     import spray.json._
-    implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.001)
+    implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.001)
 
-    val scores = new BinaryClassificationScores(List("a", "b"))
+    val scoring = BinaryClassificationScoring(List("a", "b"))
 
     val f = List[String](
       "\"a\"",
@@ -30,7 +30,7 @@ class ScoresTest extends FlatSpec with Matchers {
       "\"a\""
     )
 
-    scores.compute(f, y)
+    val scores = scoring.compute(f, y)
 
     val json_object = scores.toJson
 
@@ -85,9 +85,9 @@ class ScoresTest extends FlatSpec with Matchers {
 
     import ScoresProtocol._
     import spray.json._
-    implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.001)
+    implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.001)
 
-    val scores = new ClassificationScores(List("a", "b", "c"))
+    val scoring = PolynomialClassificationScoring(List("a", "b", "c"))
 
     val f = List[String](
       "\"a\"",
@@ -106,7 +106,7 @@ class ScoresTest extends FlatSpec with Matchers {
       "\"b\""
     )
 
-    scores.compute(f, y)
+    val scores = scoring.compute(f, y)
 
     val json_object = scores.toJson
 
@@ -122,14 +122,14 @@ class ScoresTest extends FlatSpec with Matchers {
 
     import ScoresProtocol._
     import spray.json._
-    implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.01)
+    implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.01)
 
-    val scores = new RegressionScores()
+    val scoring = RegressionScoring()
 
     val f = List[String]("15.6", "0.0051", "23.5", "0.421", "1.2", "0.0325")
     val y = List[String]("123.56", "0.67", "1078.42", "64.2", "1.76", "1.23")
 
-    scores.compute(f, y)
+    val scores = scoring.compute(f, y)
 
     val json_object = scores.toJson
 
@@ -144,14 +144,14 @@ class ScoresTest extends FlatSpec with Matchers {
 
     import ScoresProtocol._
     import spray.json._
-    implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.01)
+    implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.01)
 
-    val scores = new RegressionScores()
+    val scoring = RegressionScoring()
 
     val f = List[String]("165.3", "1.65", "700.23", "66.7", "0.5", "2.3")
     val y = List[String]("123.56", "0.67", "1078.42", "64.2", "1.76", "1.23")
 
-    scores.compute(f, y)
+    val scores = scoring.compute(f, y)
 
     val json_object = scores.toJson
 
