@@ -16,32 +16,11 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{
-  Actor,
-  ActorLogging,
-  ActorSystem,
-  Address,
-  ExtendedActorSystem,
-  Extension,
-  ExtensionKey,
-  Props
-}
+import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
 import akka.cluster.Cluster
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import eu.hbp.mip.woken.messages.validation.{ ValidationError, ValidationQuery, ValidationResult }
-
-// TODO This code will be common to all Akka service in containers -> put it as a small woken common lib!
-class RemotePathExtensionImpl(system: ExtendedActorSystem) extends Extension {
-  def getPath(actor: Actor): String =
-    actor.self.path.toStringWithAddress(system.provider.getDefaultAddress)
-}
-object RemotePathExtension extends ExtensionKey[RemotePathExtensionImpl]
-
-class RemoteAddressExtensionImpl(system: ExtendedActorSystem) extends Extension {
-  def getAddress(): Address =
-    system.provider.getDefaultAddress
-}
-object RemoteAddressExtension extends ExtensionKey[RemoteAddressExtensionImpl]
+import eu.hbp.mip.woken.utils.{ RemoteAddressExtension, RemotePathExtension }
 
 class ValidationActor extends Actor with ActorLogging {
 

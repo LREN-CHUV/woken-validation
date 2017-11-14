@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.hbp.mip.woken.core.validation
+package eu.hbp.mip.woken.validation
 
 import org.apache.spark.sql.{ Row, SparkSession }
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
