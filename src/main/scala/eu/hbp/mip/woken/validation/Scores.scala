@@ -20,32 +20,38 @@ import org.apache.spark.sql.{ Row, SparkSession }
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.evaluation.RegressionMetrics
-import spray.json.{ JsNumber, JsObject, JsString, JsValue, JsonFormat, _ }
+import spray.json.{ JsNumber, JsObject, JsString, JsValue, JsonFormat }
 import spray.json._
 import DefaultJsonProtocol._
 
 import eu.hbp.mip.woken.meta.VariableMetaData
 
-/**
-  * Created by Arnaud Jutzeler
-  *
-  *
+/** Results of a model scoring
   */
 trait Scores {
-  // TODO Better integration with spark!
-  // Quick fix for spark 2.0.0
-  System.setProperty("spark.sql.warehouse.dir", "/tmp ")
-  val spark: SparkSession = SparkSession
-    .builder()
-    .master("local")
-    .appName("Woken")
-    .getOrCreate()
-  def compute(outputs: List[String], labels: List[String]): Unit
 }
 
-object Scores {
 
-  type ConfusionMatrix = scala.collection.mutable.Map[(String, String), Int]
+/** Computes the scores
+  *
+  * Created by Arnaud Jutzeler
+  */
+trait Scoring {
+  // Quick fix for spark 2.0.0
+  System.setProperty("spark.sql.warehouse.dir", "/tmp ")
+
+  private[validation] val spark: SparkSession = SparkSession
+    .builder()
+    .master("local")
+    .appName("Woken-validation")
+    .getOrCreate()
+
+  def compute(outputs: List[String], labels: List[String]): Scores
+}
+
+object Scoring {
+
+  type ConfusionMatrix = Map[(String, String), Int]
 
   def enumerateLabel(targetMetaVariable: VariableMetaData): List[String] =
     targetMetaVariable.enumerations.get.keys.toList
@@ -62,15 +68,13 @@ object Scores {
             groundTruth: List[String],
             targetMetaVariable: VariableMetaData): Scores = {
 
-    val score: Scores = targetMetaVariable.`type` match {
-      case "binominal"   => new BinaryClassificationScores(enumerateLabel(targetMetaVariable))
-      case "polynominal" => new ClassificationScores(enumerateLabel(targetMetaVariable))
-      case _             => new RegressionScores()
+    val scoring: Scoring[Scores] = targetMetaVariable.`type` match {
+      case "binominal"   => BinaryClassificationScoring(enumerateLabel(targetMetaVariable))
+      case "polynominal" => PolynomialClassificationScoring(enumerateLabel(targetMetaVariable))
+      case _             => RegressionScoring()
     }
 
-    score.compute(output, groundTruth)
-
-    score
+    scoring.compute(output, groundTruth)
   }
 }
 
@@ -83,17 +87,18 @@ object Scores {
   * TODO Problem: BinaryClassificationMetrics does not provide confusion matrices...
   *
   */
-case class BinaryClassificationThresholdScores() extends Scores {
+case class BinaryClassificationThresholdScores(metrics: List[BinaryClassificationMetrics],
+                                               labels: Map[String, Double]
+                                              ) extends Scores {}
 
-  var metrics: List[BinaryClassificationMetrics] = null
-  var labels: Map[String, Double]                = Map()
+case class BinaryClassificationThresholdScoring extends Scoring {
 
   /**
     *
     * @param output
     * @param label
     */
-  override def compute(output: List[String], label: List[String]) = {
+  override def compute(output: List[String], label: List[String]): BinaryClassificationThresholdScores = {
 
     val data: List[(Map[String, Double], String)] = output
       .zip(label)
@@ -102,11 +107,11 @@ case class BinaryClassificationThresholdScores() extends Scores {
       })
 
     // TODO To be changed once we have the schema
-    labels += (data.head._1.keys.head -> 0.0)
-    labels += (data.head._1.keys.last -> 1.0)
+    val labels = Map(data.head._1.keys.head -> 0.0,
+                     data.head._1.keys.last -> 1.0)
 
     // Convert to dataframe
-    metrics = labels.keys
+    val metrics = labels.keys
       .map(l => {
         new BinaryClassificationMetrics(
           spark
@@ -119,6 +124,8 @@ case class BinaryClassificationThresholdScores() extends Scores {
         )
       })
       .toList
+
+    BinaryClassificationThresholdScores(metrics, labels)
   }
 }
 
@@ -126,16 +133,18 @@ case class BinaryClassificationThresholdScores() extends Scores {
   * Wrapper around Spark MLLib's MulticlassMetrics
   *
   */
-case class ClassificationScores(enumeration: List[String]) extends Scores {
+trait ClassificationScores extends Scores {
 
-  var metrics: MulticlassMetrics     = null
-  var labelsMap: Map[String, Double] = null
+  def enumeration: List[String]
+
+  var metrics: MulticlassMetrics     = _
+  var labelsMap: Map[String, Double] = _
 
   /**
     * @param output
     * @param label
     */
-  override def compute(output: List[String], label: List[String]) = {
+  override def compute(output: List[String], label: List[String]): Unit = {
 
     // Convert to dataframe
     val data: List[(String, String)] = output
@@ -160,7 +169,7 @@ case class ClassificationScores(enumeration: List[String]) extends Scores {
 
   def matrixJson(): JsValue = {
 
-    val matrix = metrics.confusionMatrix
+    var matrix = metrics.confusionMatrix
     val labels = metrics.labels
 
     val n = labelsMap.size
@@ -188,21 +197,21 @@ case class ClassificationScores(enumeration: List[String]) extends Scores {
   * While waiting for usable BinaryClassificationThresholdScores...
   *
   */
-class BinaryClassificationScores(enumeration: List[String])
-    extends ClassificationScores(enumeration: List[String]) {
+case class BinaryClassificationScores(enumeration: List[String])
+    extends ClassificationScores(enumeration) {
 
-  def recall =
+  def recall: Double =
     metrics.confusionMatrix
       .apply(0, 0) / (metrics.confusionMatrix.apply(0, 0) + metrics.confusionMatrix.apply(0, 1))
 
-  def precision =
+  def precision: Double =
     metrics.confusionMatrix
       .apply(0, 0) / (metrics.confusionMatrix.apply(0, 0) + metrics.confusionMatrix.apply(1, 0))
 
-  def f1score =
+  def f1score: Double =
     2.0 * recall * precision / (recall + precision)
 
-  def falsePositiveRate =
+  def falsePositiveRate: Double =
     metrics.confusionMatrix
       .apply(1, 0) / (metrics.confusionMatrix.apply(1, 0) + metrics.confusionMatrix.apply(1, 1))
 }
@@ -219,7 +228,7 @@ case class RegressionScores(`type`: String = "regression") extends Scores {
 
   var metrics: RegressionMetrics = null
 
-  override def compute(output: List[String], label: List[String]) = {
+  override def compute(output: List[String], label: List[String]): Unit = {
 
     // Convert to dataframe
     val data: List[(Double, Double)] = output
@@ -310,7 +319,7 @@ object ScoresProtocol extends DefaultJsonProtocol {
       // ROC Curve: metrics.roc)
     }
 
-    def read(value: JsValue) = value match {
+    def read(value: JsValue): Nothing = value match {
       case _ => deserializationError("To be implemented")
     }
   }
@@ -334,7 +343,7 @@ object ScoresProtocol extends DefaultJsonProtocol {
       )
     }
 
-    def read(value: JsValue) = value match {
+    def read(value: JsValue): Nothing = value match {
       case _ => deserializationError("To be implemented")
     }
   }
@@ -363,7 +372,7 @@ object ScoresProtocol extends DefaultJsonProtocol {
       // F-measure by label: metrics.fMeasure(l)
     }
 
-    def read(value: JsValue) = value match {
+    def read(value: JsValue): Nothing = value match {
       case _ => deserializationError("To be implemented")
     }
   }
@@ -385,7 +394,7 @@ object ScoresProtocol extends DefaultJsonProtocol {
       )
     }
 
-    def read(value: JsValue) = value match {
+    def read(value: JsValue): Nothing = value match {
       case _ => deserializationError("To be implemented")
     }
   }
@@ -398,7 +407,7 @@ object ScoresProtocol extends DefaultJsonProtocol {
         case r: RegressionScores           => r.toJson
       }).asJsObject.fields + ("type" -> JsString(s.getClass.getSimpleName)))
 
-    def read(value: JsValue) =
+    def read(value: JsValue): Scores =
       // If you need to read, you will need something in the
       // JSON that will tell you which subclass to use
       value.asJsObject.fields("type") match {
