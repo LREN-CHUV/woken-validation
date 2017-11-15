@@ -24,7 +24,7 @@ COPY .*.cfg .*ignore .*.yaml .*.conf *.md *.sh *.yml *.json Dockerfile LICENSE /
 
 RUN /check-sources.sh
 
-RUN sbt assembly
+RUN sbt test assembly
 
 FROM openjdk:8u131-jdk-alpine
 

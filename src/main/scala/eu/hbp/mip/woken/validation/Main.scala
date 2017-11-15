@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 LREN CHUV
+ * Copyright 2017 Human Brain Project MIP by LREN CHUV
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,8 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{ Actor, ActorLogging, ActorSystem, Props }
+import akka.actor.{ ActorSystem, Props }
 import akka.cluster.Cluster
-import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
-import eu.hbp.mip.woken.messages.validation.{ ValidationError, ValidationQuery, ValidationResult }
-import eu.hbp.mip.woken.utils.{ RemoteAddressExtension, RemotePathExtension }
-
-class ValidationActor extends Actor with ActorLogging {
-
-  def receive: PartialFunction[Any, Unit] = {
-    case ValidationQuery(fold, model, data, varInfo) ⇒
-      log.info("Received validation work!")
-      // Reconstruct model using hadrian and validate over the provided data
-      val replyTo = sender()
-      try {
-
-        val engine = PFAEngine.fromJson(model).head
-
-        val inputData = engine.jsonInputIterator[AnyRef](data.iterator)
-        val outputData: List[String] =
-          inputData.map(x => { engine.jsonOutput(engine.action(x)) }).toList
-        log.info("Validation work for " + fold + " done!")
-
-        replyTo ! ValidationResult(fold, varInfo, outputData)
-      } catch {
-        // TODO Too generic!
-        case e: Exception => {
-          import java.io.StringWriter
-          import java.io.PrintWriter
-          val sw = new StringWriter
-          e.printStackTrace(new PrintWriter(sw))
-          log.error("Error while validating model: " + model)
-          log.error(sw.toString)
-          replyTo ! ValidationError(e.toString)
-        }
-      }
-    case _ => log.error("Validation work not recognized!")
-  }
-}
 
 object Main extends App {
 

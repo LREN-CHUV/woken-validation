@@ -16,6 +16,7 @@ lazy val `woken-validation` =
           library.akkaRemote,
           library.akkaCluster,
           library.sprayJson,
+          library.catsCore,
           library.hadrian,
           library.sparkMlServing,
           library.sparkMllib,
@@ -34,14 +35,15 @@ lazy val `woken-validation` =
 lazy val library =
   new {
     object Version {
-      val scalaCheck    = "1.13.5"
-      val scalaTest     = "3.0.3"
-      val akka          = "2.3.16"
-      val sprayJson     = "1.3.4"
-      val hadrian       = "0.8.5"
+      val scalaCheck     = "1.13.5"
+      val scalaTest      = "3.0.3"
+      val akka           = "2.3.16"
+      val sprayJson      = "1.3.4"
+      val cats           = "1.0.0-RC1"
+      val hadrian        = "0.8.5"
       val sparkMlServing = "0.2.0"
-      val spark         = "2.2.0"
-      val wokenMessages = "2.0.1"
+      val spark          = "2.2.0"
+      val wokenMessages  = "2.0.8"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
@@ -62,6 +64,7 @@ lazy val library =
     val akkaCluster: ModuleID = "com.typesafe.akka" %% "akka-cluster" % Version.akka
     val akkaTestkit: ModuleID = "com.typesafe.akka" %% "akka-testkit" % Version.akka
     val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
+    val catsCore: ModuleID    = "org.typelevel"     %% "cats-core"    % Version.cats
     val hadrian: ModuleID     = "com.opendatagroup" % "hadrian"       % Version.hadrian
     // spark 2.2.x
     val sparkMlServing: ModuleID = "io.hydrosphere" %% "spark-ml-serving-2_2" % Version.sparkMlServing excludeAll(ExclusionRules.sparkExclusions :_*)
@@ -82,10 +85,17 @@ lazy val settings = commonSettings ++ gitSettings ++ scalafmtSettings
 lazy val commonSettings =
   Seq(
     scalaVersion := "2.11.8",
-    organization := "eu.humanbrainproject.mip",
-    organizationName := "LREN CHUV",
-    startYear := Some(2017),
-    licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
+    organization in ThisBuild := "eu.humanbrainproject.mip",
+    organizationName in ThisBuild := "Human Brain Project MIP by LREN CHUV",
+    homepage in ThisBuild := Some(url(s"https://github.com/HBPMedical/${name.value}/#readme")),
+    licenses in ThisBuild := Seq("Apache-2.0" ->
+      url(s"https://github.com/sbt/${name.value}/blob/${version.value}/LICENSE")),
+    startYear in ThisBuild := Some(2017),
+    description in ThisBuild := "Cross validation module for Woken",
+    developers in ThisBuild := List(
+      Developer("ludovicc", "Ludovic Claude", "@ludovicc", url("https://github.com/ludovicc"))
+    ),
+    scmInfo in ThisBuild := Some(ScmInfo(url(s"https://github.com/HBPMedical/${name.value}"), s"git@github.com:HBPMedical/${name.value}.git")),
     scalacOptions ++= Seq(
       "-unchecked",
       "-deprecation",
@@ -93,7 +103,6 @@ lazy val commonSettings =
       "-Yno-adapted-args",
       "-Ywarn-dead-code",
       "-Ywarn-value-discard",
-      "-Ylog-classpath",
       "-language:_",
       "-target:jvm-1.8",
       "-encoding",

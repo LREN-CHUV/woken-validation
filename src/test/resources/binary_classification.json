@@ -1,0 +1,23 @@
+{
+  "Accuracy": 0.5,
+  "Confusion matrix": {
+    "labels": [
+      "a",
+      "b"
+    ],
+    "values": [
+      [
+        2.0,
+        2.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  },
+  "F1-score": 0.5714285714285715,
+  "False positive rate": 0.5,
+  "Precision": 0.6666666666666666,
+  "Recall": 0.5
+}
