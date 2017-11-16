@@ -25,6 +25,7 @@ lazy val `woken-validation` =
           library.scalaTest    % Test,
           library.akkaTestkit  % Test
         ),
+        assemblyJarName in assembly := "woken-validation-all.jar",
         assemblyMergeStrategy in assembly := {
           case PathList("io", "hydrosphere", xs @ _*) => MergeStrategy.first
           case x =>

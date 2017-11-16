@@ -39,7 +39,7 @@ RUN mkdir -p /opt/woken-validation/config
 RUN adduser -H -D -u 1000 woken \
     && chown -R woken:woken /opt/woken-validation
 
-COPY --from=scala-build-env /my-project/target/scala-2.11/woken-validation-assembly-$VERSION.jar /opt/woken-validation/woken-validation.jar
+COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
 
 USER woken
 
