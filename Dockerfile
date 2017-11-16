@@ -30,6 +30,10 @@ FROM hbpmip/java-base:8u131-2
 
 MAINTAINER Ludovic Claude <ludovic.claude@chuv.ch>
 
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+
 RUN mkdir -p /opt/woken-validation/config
 
 RUN adduser -H -D -u 1000 woken \
