@@ -24,7 +24,13 @@ lazy val `woken-validation` =
           library.scalaCheck   % Test,
           library.scalaTest    % Test,
           library.akkaTestkit  % Test
-        )
+        ),
+        assemblyMergeStrategy in assembly := {
+          case PathList("io", "hydrosphere", xs @ _*) => MergeStrategy.first
+          case x =>
+            val oldStrategy = (assemblyMergeStrategy in assembly).value
+            oldStrategy(x)
+        }
       )
     )
 

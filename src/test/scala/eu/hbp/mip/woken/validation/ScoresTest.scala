@@ -54,8 +54,6 @@ class ScoresTest extends FlatSpec with Matchers {
 
     val json_object = scores.toJson
 
-    print(json_object.prettyPrint)
-
     json_object.asJsObject.fields("Confusion matrix").compactPrint should equal(
       "{\"labels\":[\"a\",\"b\"],\"values\":[[2.0,2.0],[1.0,1.0]]}"
     )
