@@ -17,6 +17,7 @@
 package eu.hbp.mip.woken.validation
 
 import akka.actor.{ Actor, ActorLogging }
+import akka.event.LoggingReceive
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import eu.hbp.mip.woken.messages.validation._
 import eu.hbp.mip.woken.meta.VariableMetaData
@@ -24,7 +25,8 @@ import cats.data.NonEmptyList
 
 class ValidationActor extends Actor with ActorLogging {
 
-  def receive: PartialFunction[Any, Unit] = {
+  def receive: PartialFunction[Any, Unit] = LoggingReceive {
+
     case ValidationQuery(fold, model, data, varInfo) ⇒
       log.info("Received validation work!")
       // Reconstruct model using hadrian and validate over the provided data
@@ -52,11 +54,13 @@ class ValidationActor extends Actor with ActorLogging {
                       targetMetaData: VariableMetaData) =>
       import ScoresProtocol._
       import spray.json._
+
+      log.info("Received scoring work!")
       val replyTo = sender()
 
       val scores: Scores = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
       replyTo ! ScoringResult(scores.toJson.asJsObject)
 
-    case _ => log.error("Validation work not recognized!")
+    case e: _ => log.error("Work not recognized!: " + e)
   }
 }
