@@ -95,7 +95,7 @@ lazy val library =
   }
 
 resolvers += "opendatagroup maven" at "http://repository.opendatagroup.com/maven"
-resolvers += Resolver.bintrayRepo("hbpmedical", "maven")
+resolvers += "HBPMedical Bintray Repo" at "http://dl.bintray.com/hbpmedical/maven/"
 
 // *****************************************************************************
 // Settings
