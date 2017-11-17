@@ -61,6 +61,6 @@ class ValidationActor extends Actor with ActorLogging {
       val scores: Scores = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
       replyTo ! ScoringResult(scores.toJson.asJsObject)
 
-    case e: _ => log.error("Work not recognized!: " + e)
+    case e => log.error("Work not recognized!: " + e)
   }
 }
