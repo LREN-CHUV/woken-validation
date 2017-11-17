@@ -22,8 +22,9 @@ import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import eu.hbp.mip.woken.messages.validation._
 import eu.hbp.mip.woken.meta.VariableMetaData
 import cats.data.NonEmptyList
+import com.github.levkhomich.akka.tracing.ActorTracing
 
-class ValidationActor extends Actor with ActorLogging {
+class ValidationActor extends Actor with ActorLogging with ActorTracing {
 
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 

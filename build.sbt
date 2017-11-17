@@ -15,7 +15,12 @@ lazy val `woken-validation` =
           library.akkaActor,
           library.akkaRemote,
           library.akkaCluster,
+          library.akkaSlf4j,
+          library.akkaTracingCore,
           library.sprayJson,
+          library.slf4j,
+          library.log4j,
+          library.disruptor,
           library.catsCore,
           library.hadrian,
           library.sparkMlServing,
@@ -45,7 +50,11 @@ lazy val library =
       val scalaCheck     = "1.13.5"
       val scalaTest      = "3.0.3"
       val akka           = "2.3.16"
+      val akkaTracing    = "0.5.2" // use 0.6.1 with akka-http
       val sprayJson      = "1.3.4"
+      val slf4j          = "1.7.25"
+      val log4j          = "2.9.1"
+      val disruptor      = "3.3.7"
       val cats           = "1.0.0-RC1"
       val hadrian        = "0.8.5"
       val sparkMlServing = "0.2.0"
@@ -69,8 +78,13 @@ lazy val library =
     val akkaActor: ModuleID   = "com.typesafe.akka" %% "akka-actor"   % Version.akka
     val akkaRemote: ModuleID  = "com.typesafe.akka" %% "akka-remote"  % Version.akka
     val akkaCluster: ModuleID = "com.typesafe.akka" %% "akka-cluster" % Version.akka
+    val akkaSlf4j: ModuleID   = "com.typesafe.akka" %% "akka-slf4j"   % Version.akka
     val akkaTestkit: ModuleID = "com.typesafe.akka" %% "akka-testkit" % Version.akka
+    val akkaTracingCore: ModuleID = "com.github.levkhomich" %% "akka-tracing-core" % Version.akkaTracing
     val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
+    val slf4j: ModuleID       = "org.slf4j"          % "slf4j-api"    % Version.slf4j
+    val log4j: ModuleID       = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
+    val disruptor: ModuleID   = "com.lmax"           % "disruptor"    % Version.disruptor
     val catsCore: ModuleID    = "org.typelevel"     %% "cats-core"    % Version.cats
     val hadrian: ModuleID     = "com.opendatagroup" % "hadrian"       % Version.hadrian
     // spark 2.2.x
