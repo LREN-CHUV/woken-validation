@@ -30,6 +30,8 @@ lazy val `woken-validation` =
           library.scalaTest    % Test,
           library.akkaTestkit  % Test
         ),
+        includeFilter in (Compile, unmanagedResources) := "*.xml",
+        includeFilter in (Test, unmanagedResources) := "*.json",
         assemblyJarName in assembly := "woken-validation-all.jar",
         assemblyMergeStrategy in assembly := {
           case PathList("io", "hydrosphere", xs @ _*) => MergeStrategy.first
