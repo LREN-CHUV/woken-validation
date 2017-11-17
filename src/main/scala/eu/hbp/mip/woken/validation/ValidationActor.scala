@@ -20,15 +20,13 @@ import akka.actor.{ Actor, ActorLogging }
 import akka.event.LoggingReceive
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import eu.hbp.mip.woken.messages.validation._
-import eu.hbp.mip.woken.meta.VariableMetaData
-import cats.data.NonEmptyList
 import com.github.levkhomich.akka.tracing.ActorTracing
 
 class ValidationActor extends Actor with ActorLogging with ActorTracing {
 
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
-    case ValidationQuery(fold, model, data, varInfo) ⇒
+    case ValidationQuery(fold, model, data, varInfo) =>
       log.info("Received validation work!")
       // Reconstruct model using hadrian and validate over the provided data
       val replyTo = sender()
@@ -50,9 +48,7 @@ class ValidationActor extends Actor with ActorLogging with ActorTracing {
         }
       }
 
-    case ScoringQuery(algorithmOutput: NonEmptyList[String],
-                      groundTruth: NonEmptyList[String],
-                      targetMetaData: VariableMetaData) =>
+    case ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
       import ScoresProtocol._
       import spray.json._
 
