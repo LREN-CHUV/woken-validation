@@ -28,7 +28,7 @@ import cats.data.NonEmptyList
 
 /** Results of a model scoring
   */
-trait Scores {}
+trait Scores
 
 /** Computes the scores
   *
