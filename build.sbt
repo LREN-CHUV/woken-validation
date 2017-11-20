@@ -19,12 +19,12 @@ lazy val `woken-validation` =
           library.akkaTracingCore,
           library.sprayJson,
           library.slf4j,
-          library.log4j,
+          library.log4jSlf4j,
           library.disruptor,
           library.catsCore,
           library.hadrian,
-          library.sparkMlServing,
           library.sparkMllib,
+          library.sparkSql,
           library.wokenMessages,
           library.scalaCheck   % Test,
           library.scalaTest    % Test,
@@ -35,6 +35,24 @@ lazy val `woken-validation` =
         assemblyJarName in assembly := "woken-validation-all.jar",
         assemblyMergeStrategy in assembly := {
           case PathList("io", "hydrosphere", xs @ _*) => MergeStrategy.first
+          case PathList("org","aopalliance", xs @ _*) => MergeStrategy.last
+          case PathList("javax", "inject", xs @ _*) => MergeStrategy.last
+          case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
+          case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
+          case PathList("org", "apache", xs @ _*) => MergeStrategy.last
+          case PathList("org", "apache", "spark", "unused", xs @ _*) => MergeStrategy.first
+          case PathList("com", "google", xs @ _*) => MergeStrategy.last
+          case PathList("com", "esotericsoftware", xs @ _*) => MergeStrategy.last
+          case PathList("com", "codahale", xs @ _*) => MergeStrategy.last
+          case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
+          case "about.html" => MergeStrategy.discard
+          case "overview.html" => MergeStrategy.discard
+          case "parquet.thrift" => MergeStrategy.last
+          case "META-INF/ECLIPSEF.RSA" => MergeStrategy.discard
+          case "META-INF/mailcap" => MergeStrategy.last
+          case "META-INF/mimetypes.default" => MergeStrategy.last
+          case "plugin.properties" => MergeStrategy.last
+          case "log4j.properties" => MergeStrategy.last
           case x =>
             val oldStrategy = (assemblyMergeStrategy in assembly).value
             oldStrategy(x)
@@ -59,8 +77,7 @@ lazy val library =
       val disruptor      = "3.3.7"
       val cats           = "1.0.0-RC1"
       val hadrian        = "0.8.5"
-      val sparkMlServing = "0.2.0"
-      val spark          = "2.2.0"
+      val spark          = "2.0.2"
       val wokenMessages  = "2.0.10"
     }
     object ExclusionRules {
@@ -71,9 +88,8 @@ lazy val library =
       val excludeParquet = ExclusionRule(organization = "org.apache.parquet")
       val excludeNlp = ExclusionRule(organization = "org.scalanlp")
       val excludeHadoop = ExclusionRule(organization = "org.apache.hadoop")
-      val excludeSparkGraphx = ExclusionRule(organization = "org.apache.spark", artifact = "spark-graphx")
-      val sparkExclusions = Seq(excludeIvy, excludeMail, excludeNettyIo, excludeQQ, excludeParquet, excludeNlp,
-        excludeHadoop, excludeSparkGraphx)
+      val excludeSlf4jLog4j12 = ExclusionRule(organization = "org.slf4j", artifact = "slf4j-log4j12")
+      val sparkExclusions = Seq(excludeIvy, excludeMail, excludeSlf4jLog4j12)
     }
     val scalaCheck: ModuleID  = "org.scalacheck"    %% "scalacheck"   % Version.scalaCheck
     val scalaTest: ModuleID   = "org.scalatest"     %% "scalatest"    % Version.scalaTest
@@ -85,14 +101,14 @@ lazy val library =
     val akkaTracingCore: ModuleID = "com.github.levkhomich" %% "akka-tracing-core" % Version.akkaTracing
     val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
     val slf4j: ModuleID       = "org.slf4j"          % "slf4j-api"    % Version.slf4j
-    val log4j: ModuleID       = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
+    val slf4jLog4j: ModuleID  = "org.slf4j"          % "slf4j-log4j12" % Version.slf4j
+    val log4jSlf4j: ModuleID  = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
     val disruptor: ModuleID   = "com.lmax"           % "disruptor"    % Version.disruptor
     val catsCore: ModuleID    = "org.typelevel"     %% "cats-core"    % Version.cats
     val hadrian: ModuleID     = "com.opendatagroup" % "hadrian"       % Version.hadrian
     // spark 2.2.x
-    val sparkMlServing: ModuleID = "io.hydrosphere" %% "spark-ml-serving-2_2" % Version.sparkMlServing excludeAll(ExclusionRules.sparkExclusions :_*)
-    val sparkMllib: ModuleID  = "org.apache.spark"  %% "spark-mllib"  % Version.spark % "provided"
-    val sparkSql: ModuleID    = "org.apache.spark"  %% "spark-sql"    % Version.spark % "provided"
+    val sparkMllib: ModuleID  = "org.apache.spark"  %% "spark-mllib"  % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
+    val sparkSql: ModuleID    = "org.apache.spark"  %% "spark-sql"    % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
     val wokenMessages: ModuleID = "eu.humanbrainproject.mip" %% "woken-messages" % Version.wokenMessages
   }
 
