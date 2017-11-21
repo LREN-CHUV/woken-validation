@@ -94,8 +94,13 @@ echo "[ok] Done"
 git push
 git push --tags
 
-# Publish on BinTray
-docker run -e BINTRAY_USER=$BINTRAY_USER -e BINTRAY_PASS=$BINTRAY_PASS woken-messages-build:latest sbt publish
+# Push on Docker Hub
+#  WARNING: Requires captain 1.1.0 to push user tags
+BUILD_DATE=$(date -Iseconds) \
+  VCS_REF=$updated_version \
+  VERSION=$updated_version \
+  WORKSPACE=$WORKSPACE \
+  $CAPTAIN push target_image --branch-tags=false --commit-tags=false --tag $updated_version
 
 # Notify on slack
 sed "s/USER/${USER^}/" $WORKSPACE/slack.json > $WORKSPACE/.slack.json
