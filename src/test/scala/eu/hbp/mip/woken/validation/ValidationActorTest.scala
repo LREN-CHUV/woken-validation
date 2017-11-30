@@ -16,7 +16,6 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.Status.Success
 import akka.actor.{ ActorSystem, Props }
 import akka.testkit.{ ImplicitSender, TestKit }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
