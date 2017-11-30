@@ -20,9 +20,6 @@ import org.scalactic.{Equality, TolerantNumerics}
 import org.scalatest.{FlatSpec, Matchers}
 import cats.data.NonEmptyList
 import eu.hbp.mip.woken.validation.util.JsonUtils
-import spray.json.JsValue
-
-import scala.io.Source
 
 class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
