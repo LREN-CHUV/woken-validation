@@ -16,14 +16,15 @@
 
 package eu.hbp.mip.woken.validation
 
-import org.scalactic.{ Equality, TolerantNumerics }
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalactic.{Equality, TolerantNumerics}
+import org.scalatest.{FlatSpec, Matchers}
 import cats.data.NonEmptyList
+import eu.hbp.mip.woken.validation.util.JsonUtils
 import spray.json.JsValue
 
 import scala.io.Source
 
-class ScoresTest extends FlatSpec with Matchers {
+class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
   "BinaryClassificationScores " should "be correct" in {
 
@@ -204,14 +205,5 @@ class ScoresTest extends FlatSpec with Matchers {
       .convertTo[Double] should equal(65729.0537) // E(y) = 211.64, SSreg = 394374.3226
 
     assertResult(loadJson("/regression_score2.json"))(json_object)
-  }
-
-  def loadJson(path: String): JsValue = {
-    import spray.json._
-    import spray.json.DefaultJsonProtocol.RootJsObjectFormat
-
-    val source = Source.fromURL(getClass.getResource(path))
-    jsonReader
-    source.mkString.parseJson
   }
 }
