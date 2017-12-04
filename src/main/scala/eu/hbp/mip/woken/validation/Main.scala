@@ -27,6 +27,6 @@ object Main extends App {
   //Cluster(system).join(Address("akka.tcp", "woken", "127.0.0.1", 8088))
   lazy val cluster = Cluster(system)
 
-  // Start the local validation actor
-  val validationActor = system.actorOf(Props[ValidationActor], name = "validation")
+  // Start the local work dispatcher actor
+  val dispatcherActor = system.actorOf(WorkDispatcherActor.props, name = "validation")
 }

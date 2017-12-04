@@ -263,7 +263,10 @@ case class RegressionScoring(`type`: String = "regression") extends Scoring {
     // Convert to dataframe
     val data: NonEmptyList[(Double, Double)] = algorithmOutput
       .zipWith(label)((_, _))
-      .map({ case (y, f) => (y.parseJson.convertTo[Double], f.parseJson.convertTo[Double]) })
+      .map {
+        case (y: String, f: String) =>
+          (y.parseJson.convertTo[Double], f.parseJson.convertTo[Double])
+      }
     val df = spark.createDataFrame(data.toList).toDF("output", "label")
 
     val predictionAndLabels =

@@ -16,11 +16,18 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{ Actor, ActorLogging }
+import akka.actor.{ Actor, ActorLogging, Props }
 import akka.event.LoggingReceive
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import eu.hbp.mip.woken.messages.validation._
 import com.github.levkhomich.akka.tracing.ActorTracing
+
+object ValidationActor {
+
+  def props: Props =
+    Props(new ValidationActor)
+
+}
 
 class ValidationActor extends Actor with ActorLogging with ActorTracing {
 
@@ -47,16 +54,6 @@ class ValidationActor extends Actor with ActorLogging with ActorTracing {
           replyTo ! ValidationError(e.toString)
         }
       }
-
-    case ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
-      import ScoresProtocol._
-      import spray.json._
-
-      log.info("Received scoring work!")
-      val replyTo = sender()
-
-      val scores: Scores = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
-      replyTo ! ScoringResult(scores.toJson.asJsObject)
 
     case e => log.error("Work not recognized!: " + e)
   }

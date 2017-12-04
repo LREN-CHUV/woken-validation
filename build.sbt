@@ -78,7 +78,7 @@ lazy val library =
       val cats           = "1.0.0-RC1"
       val hadrian        = "0.8.5"
       val spark          = "2.0.2"
-      val wokenMessages  = "2.0.10"
+      val wokenMessages  = "2.0.11"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")

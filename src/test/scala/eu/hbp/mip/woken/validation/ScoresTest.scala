@@ -16,8 +16,8 @@
 
 package eu.hbp.mip.woken.validation
 
-import org.scalactic.{Equality, TolerantNumerics}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalactic.{ Equality, TolerantNumerics }
+import org.scalatest.{ FlatSpec, Matchers }
 import cats.data.NonEmptyList
 import eu.hbp.mip.woken.validation.util.JsonUtils
 
