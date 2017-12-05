@@ -21,6 +21,8 @@ import akka.event.LoggingReceive
 import com.github.levkhomich.akka.tracing.ActorTracing
 import eu.hbp.mip.woken.messages.validation.{ ScoringQuery, ScoringResult }
 
+import scala.util.{ Failure, Success, Try }
+
 object ScoringActor {
 
   def props: Props =
@@ -39,8 +41,12 @@ class ScoringActor extends Actor with ActorLogging with ActorTracing {
       log.info("Received scoring work!")
       val replyTo = sender()
 
-      val scores: Scores = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
-      replyTo ! ScoringResult(scores.toJson.asJsObject)
+      val scores: Try[Scores] = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
+
+      scores match {
+        case Success(s) => replyTo ! ScoringResult(s.toJson.asJsObject)
+        case Failure(e) => replyTo ! ScoringResult(s"""{"error": "$e"}""".parseJson.asJsObject)
+      }
 
     case e => log.error("Work not recognized by scoring actor: " + e)
   }

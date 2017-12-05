@@ -50,7 +50,9 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
     val scores = scoring.compute(f, y)
 
-    val json_object = scores.toJson
+    scores.isSuccess shouldBe true
+
+    val json_object = scores.get.toJson
 
     json_object.asJsObject.fields("Confusion matrix").compactPrint should equal(
       "{\"labels\":[\"a\",\"b\"],\"values\":[[2.0,2.0],[1.0,1.0]]}"
@@ -130,7 +132,9 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
     val scores = scoring.compute(f, y)
 
-    val json_object = scores.toJson
+    scores.isSuccess shouldBe true
+
+    val json_object = scores.get.toJson
 
     json_object.asJsObject.fields("Confusion matrix").compactPrint should equal(
       "{\"labels\":[\"a\",\"b\",\"c\"],\"values\":[[1.0,1.0,1.0],[1.0,1.0,0.0],[0.0,0.0,1.0]]}"
@@ -165,7 +169,9 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
     val scores = scoring.compute(f, y)
 
-    val json_object = scores.toJson
+    scores.isSuccess shouldBe true
+
+    val json_object = scores.get.toJson
 
     json_object.asJsObject.fields("R-squared").convertTo[Double] should equal(-0.2352)
     json_object.asJsObject.fields("RMSE").convertTo[Double] should equal(433.7)
@@ -191,7 +197,9 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
     val scores = scoring.compute(f, y)
 
-    val json_object = scores.toJson
+    scores.isSuccess shouldBe true
+
+    val json_object = scores.get.toJson
 
     json_object.asJsObject.fields("R-squared").convertTo[Double] should equal(0.84153)
     json_object.asJsObject.fields("RMSE").convertTo[Double] should equal(155.34)

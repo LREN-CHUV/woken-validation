@@ -27,5 +27,6 @@
   "Weighted F1-score": 0.47777777777777775,
   "Weighted Precision": 0.5,
   "Weighted Recall": 0.5,
-  "Weighted false positive rate": 0.2833333333333333
+  "Weighted false positive rate": 0.2833333333333333,
+  "type": "PolynomialClassificationScores"
 }

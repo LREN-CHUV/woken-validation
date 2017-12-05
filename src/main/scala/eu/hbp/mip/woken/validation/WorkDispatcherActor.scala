@@ -36,12 +36,12 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
 
   import WorkDispatcherActor._
 
-  var activeScoringActors: Set[ActorRef]       = Set.empty
-  val activeScoringActorsLimit: Int            = Math.max(1, Runtime.getRuntime.availableProcessors())
+  var activeScoringActors: Set[ActorRef]                   = Set.empty
+  val activeScoringActorsLimit: Int                        = Math.max(1, Runtime.getRuntime.availableProcessors())
   var pendingScoringQueries: Set[(ScoringQuery, ActorRef)] = Set.empty
 
-  var activeValidationActors: Set[ActorRef]          = Set.empty
-  val activeValidationActorsLimit: Int               = Math.max(1, Runtime.getRuntime.availableProcessors())
+  var activeValidationActors: Set[ActorRef]                      = Set.empty
+  val activeValidationActorsLimit: Int                           = Math.max(1, Runtime.getRuntime.availableProcessors())
   var pendingValidationQueries: Set[(ValidationQuery, ActorRef)] = Set.empty
 
   var timerTask: Option[Cancellable] = None
@@ -52,7 +52,7 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
       if (pendingScoringQueries.nonEmpty) {
         if (activeScoringActors.size <= activeScoringActorsLimit) {
           log.info("Dequeue scoring query")
-          val head = pendingScoringQueries.head
+          val head         = pendingScoringQueries.head
           val (q, replyTo) = head
           dispatchScoring(q, replyTo)
           pendingScoringQueries = pendingScoringQueries - head
@@ -60,7 +60,7 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
       } else if (pendingValidationQueries.nonEmpty) {
         if (activeValidationActors.size <= activeValidationActorsLimit) {
           log.info("Dequeue validation query")
-          val head = pendingValidationQueries.head
+          val head         = pendingValidationQueries.head
           val (q, replyTo) = head
           dispatchValidation(q, replyTo)
           pendingValidationQueries = pendingValidationQueries - head
@@ -71,21 +71,23 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
       }
 
     case q: ScoringQuery =>
+      val replyTo = sender()
       if (activeScoringActors.size <= activeScoringActorsLimit) {
-        dispatchScoring(q, sender())
+        dispatchScoring(q, replyTo)
       } else {
         log.info("Queue scoring query")
         startTimer()
-        pendingScoringQueries += ((q, sender()))
+        pendingScoringQueries += ((q, replyTo))
       }
 
     case q: ValidationQuery =>
+      val replyTo = sender()
       if (activeValidationActors.size <= activeValidationActorsLimit) {
-        dispatchValidation(q, sender())
+        dispatchValidation(q, replyTo)
       } else {
         log.info("Queue validation query")
         startTimer()
-        pendingValidationQueries += ((q, sender()))
+        pendingValidationQueries += ((q, replyTo))
       }
 
     case Terminated(a) =>

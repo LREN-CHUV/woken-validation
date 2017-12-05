@@ -23,8 +23,9 @@ import spray.json.{ JsNumber, JsObject, JsString, JsValue, JsonFormat }
 import spray.json._
 import DefaultJsonProtocol._
 import eu.hbp.mip.woken.meta.VariableMetaData
-
 import cats.data.NonEmptyList
+
+import scala.util.Try
 
 /** Results of a model scoring
   */
@@ -38,17 +39,32 @@ trait Scoring {
   // Quick fix for spark 2.0.0
   val _ = System.setProperty("spark.sql.warehouse.dir", "/tmp ")
 
-  private[validation] val spark: SparkSession =
+  def compute(algorithmOutput: NonEmptyList[String], labels: NonEmptyList[String]): Try[Scores] = {
+    val session = Scoring.spark.newSession()
+    SparkSession.setActiveSession(session)
+
+    val scores = Try(
+      compute(algorithmOutput, labels, session)
+    )
+
+    SparkSession.clearActiveSession()
+
+    scores
+  }
+
+  private[validation] def compute(algorithmOutput: NonEmptyList[String],
+                                  labels: NonEmptyList[String],
+                                  session: SparkSession): Scores
+}
+
+object Scoring {
+
+  private[validation] lazy val spark: SparkSession =
     SparkSession
       .builder()
       .master("local")
       .appName("Woken-validation")
       .getOrCreate()
-
-  def compute(algorithmOutput: NonEmptyList[String], labels: NonEmptyList[String]): Scores
-}
-
-object Scoring {
 
   def enumerateLabel(targetMetaVariable: VariableMetaData): List[String] =
     targetMetaVariable.enumerations.fold(Nil: List[String])(_.keys.toList)
@@ -209,7 +225,9 @@ trait ClassificationScoring[S <: ClassificationScores] extends Scoring {
 
   private[validation] def gen: (MulticlassMetrics, Map[String, Double]) => S
 
-  override def compute(algorithmOutput: NonEmptyList[String], label: NonEmptyList[String]): S = {
+  override def compute(algorithmOutput: NonEmptyList[String],
+                       label: NonEmptyList[String],
+                       session: SparkSession): S = {
 
     // Convert to dataframe
     val data: NonEmptyList[(String, String)] = algorithmOutput
@@ -220,7 +238,7 @@ trait ClassificationScoring[S <: ClassificationScores] extends Scoring {
 
     val labelsMap = enumeration.zipWithIndex.map({ case (x, i) => (x, i.toDouble) }).toMap
 
-    val df = spark
+    val df = session
       .createDataFrame(data.map(x => { (labelsMap.get(x._1), labelsMap.get(x._2)) }).toList)
       .toDF("output", "label")
 
@@ -258,7 +276,8 @@ case class RegressionScores(metrics: RegressionMetrics) extends Scores
 case class RegressionScoring(`type`: String = "regression") extends Scoring {
 
   override def compute(algorithmOutput: NonEmptyList[String],
-                       label: NonEmptyList[String]): RegressionScores = {
+                       label: NonEmptyList[String],
+                       session: SparkSession): RegressionScores = {
 
     // Convert to dataframe
     val data: NonEmptyList[(Double, Double)] = algorithmOutput
@@ -267,7 +286,7 @@ case class RegressionScoring(`type`: String = "regression") extends Scoring {
         case (y: String, f: String) =>
           (y.parseJson.convertTo[Double], f.parseJson.convertTo[Double])
       }
-    val df = spark.createDataFrame(data.toList).toDF("output", "label")
+    val df = session.createDataFrame(data.toList).toDF("output", "label")
 
     val predictionAndLabels =
       df.rdd.map {
