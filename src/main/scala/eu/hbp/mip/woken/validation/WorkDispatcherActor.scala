@@ -52,13 +52,13 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
       if (pendingScoringQueries.nonEmpty) {
         if (activeScoringActors.size <= activeScoringActorsLimit) {
           val q = pendingScoringQueries.head
-          dispatch(q)
+          dispatchScoring(q)
           pendingScoringQueries -= q
         }
       } else if (pendingValidationQueries.nonEmpty) {
         if (activeValidationActors.size <= activeValidationActorsLimit) {
           val q = pendingValidationQueries.head
-          dispatch(q)
+          dispatchValidation(q)
           pendingValidationQueries -= q
         }
       } else {
@@ -68,7 +68,7 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
 
     case q: ScoringQuery =>
       if (activeScoringActors.size <= activeScoringActorsLimit) {
-        dispatch(q)
+        dispatchScoring(q)
       } else {
         startTimer()
         pendingScoringQueries += q
@@ -76,7 +76,7 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
 
     case q: ValidationQuery =>
       if (activeValidationActors.size <= activeValidationActorsLimit) {
-        dispatch(q)
+        dispatchValidation(q)
       } else {
         startTimer()
         pendingValidationQueries += q
@@ -87,7 +87,7 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
       activeScoringActors -= a
       activeValidationActors -= a
 
-    case _ => // ignore
+    case e => log.error("Work not recognized!: " + e)
 
   }
 
@@ -101,18 +101,18 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
       )
     }
 
-  private def dispatch(q: ScoringQuery): Unit = {
+  private def dispatchScoring(q: ScoringQuery): Unit = {
     val scoringActorRef = context.actorOf(ScoringActor.props)
     scoringActorRef.tell(q, sender())
     context watch scoringActorRef
     activeScoringActors += scoringActorRef
   }
 
-  private def dispatch(q: ValidationQuery): Unit = {
+  private def dispatchValidation(q: ValidationQuery): Unit = {
     val validationActorRef = context.actorOf(ValidationActor.props)
     validationActorRef.tell(q, sender())
     context watch validationActorRef
-    activeScoringActors += validationActorRef
+    activeValidationActors += validationActorRef
   }
 
 }

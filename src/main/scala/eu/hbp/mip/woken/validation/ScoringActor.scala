@@ -24,7 +24,7 @@ import eu.hbp.mip.woken.messages.validation.{ ScoringQuery, ScoringResult }
 object ScoringActor {
 
   def props: Props =
-    Props(new ScoringActor)
+    Props(new ScoringActor())
 
 }
 
@@ -42,7 +42,7 @@ class ScoringActor extends Actor with ActorLogging with ActorTracing {
       val scores: Scores = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
       replyTo ! ScoringResult(scores.toJson.asJsObject)
 
-    case e => log.error("Work not recognized!: " + e)
+    case e => log.error("Work not recognized by scoring actor: " + e)
   }
 
 }

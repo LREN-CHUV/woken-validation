@@ -25,7 +25,7 @@ import com.github.levkhomich.akka.tracing.ActorTracing
 object ValidationActor {
 
   def props: Props =
-    Props(new ValidationActor)
+    Props(new ValidationActor())
 
 }
 
@@ -55,6 +55,6 @@ class ValidationActor extends Actor with ActorLogging with ActorTracing {
         }
       }
 
-    case e => log.error("Work not recognized!: " + e)
+    case e => log.error("Work not recognized by validation actor: " + e)
   }
 }
