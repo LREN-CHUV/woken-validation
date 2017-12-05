@@ -28,7 +28,7 @@ object WorkDispatcherActor {
   private[validation] case object CheckPending
 
   def props: Props =
-    Props(new ScoringActor)
+    Props(new WorkDispatcherActor())
 
 }
 
@@ -51,12 +51,14 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
     case CheckPending =>
       if (pendingScoringQueries.nonEmpty) {
         if (activeScoringActors.size <= activeScoringActorsLimit) {
+          log.info("Dequeue scoring query")
           val q = pendingScoringQueries.head
           dispatchScoring(q)
           pendingScoringQueries -= q
         }
       } else if (pendingValidationQueries.nonEmpty) {
         if (activeValidationActors.size <= activeValidationActorsLimit) {
+          log.info("Dequeue validation query")
           val q = pendingValidationQueries.head
           dispatchValidation(q)
           pendingValidationQueries -= q
@@ -70,6 +72,7 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
       if (activeScoringActors.size <= activeScoringActorsLimit) {
         dispatchScoring(q)
       } else {
+        log.info("Queue scoring query")
         startTimer()
         pendingScoringQueries += q
       }
@@ -78,6 +81,7 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
       if (activeValidationActors.size <= activeValidationActorsLimit) {
         dispatchValidation(q)
       } else {
+        log.info("Queue validation query")
         startTimer()
         pendingValidationQueries += q
       }
@@ -102,6 +106,7 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
     }
 
   private def dispatchScoring(q: ScoringQuery): Unit = {
+    log.info(s"Dispatch scoring query")
     val scoringActorRef = context.actorOf(ScoringActor.props)
     scoringActorRef.tell(q, sender())
     context watch scoringActorRef
@@ -109,6 +114,7 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
   }
 
   private def dispatchValidation(q: ValidationQuery): Unit = {
+    log.info(s"Dispatch validation query")
     val validationActorRef = context.actorOf(ValidationActor.props)
     validationActorRef.tell(q, sender())
     context watch validationActorRef
