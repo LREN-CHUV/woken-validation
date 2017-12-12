@@ -2,6 +2,12 @@
 
 # Woken validation
 
+Benchmarking (model scoring) and cross-validation support add-on module for Woken.
+
+This software requires [Woken](https://github.com/HBPMedical/woken) to work, as it establishes an Akka cluster with Woken as the master.
+
+It embeds [Apache Spark](http://spark.apache.org/) which provides the numerical methods for benchmarking and model scoring.
+
 ## How to build
 
 Prerequisites: docker, captain
@@ -11,5 +17,23 @@ Prerequisites: docker, captain
 ```sh
 ./build.sh
 ```
+It will build the scala project into a Docker container.
 
-It will build the scala project into a docker container.
+## Release
+
+You need the following software installed:
+
+* [Bumpversion](https://github.com/peritus/bumpversion)
+* [Precommit](http://pre-commit.com/)
+
+Execute the following commands to distribute Woken as a Docker container:
+
+```sh
+  ./publish.sh
+```
+
+# Acknowledgements
+
+This work has been funded by the European Union Seventh Framework Program (FP7/2007­2013) under grant agreement no. 604102 (HBP)
+
+This work is part of SP8 of the Human Brain Project (SGA1).
