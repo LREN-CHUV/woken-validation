@@ -1,125 +1,4 @@
 {
-  "input": {
-    "doc": "Input is the list of covariables and groups",
-    "name": "DependentVariables",
-    "type": "map",
-    "values": "double"
-  },
-  "output": {
-    "doc": "Output is the estimate of the variable",
-    "type": "double"
-  },
-  "cells": {
-    "model": {
-      "type": {
-        "name": "knn_model",
-        "type": "record",
-        "fields": [
-          {
-            "name": "k",
-            "type": "int"
-          },
-          {
-            "name": "samples",
-            "type": {
-              "type": "array",
-              "items": {
-                "type": "record",
-                "name": "Sample",
-                "fields": [
-                  {
-                    "name": "vars",
-                    "type": {
-                      "type": "array",
-                      "items": "double"
-                    }
-                  },
-                  {
-                    "name": "label",
-                    "type": "double"
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      },
-      "init": {
-        "k": 1,
-        "samples": [
-          {
-            "vars": [
-              1.0,
-              1.0
-            ],
-            "label": 10.0
-          },
-          {
-            "vars": [
-              2.0,
-              2.0
-            ],
-            "label": 20.0
-          }
-        ]
-      }
-    }
-  },
-  "fcns": {
-    "toArray": {
-      "params": [
-        {
-          "m": {
-            "type": "map",
-            "values": "double"
-          }
-        }
-      ],
-      "ret": {
-        "type": "array",
-        "items": "double"
-      },
-      "do": [
-        {
-          "let": {
-            "input_map": "m"
-          }
-        },
-        {
-          "a.map": [
-            {
-              "type": {
-                "type": "array",
-                "items": "string"
-              },
-              "value": [
-                "v1",
-                "v2"
-              ]
-            },
-            {
-              "params": [
-                {
-                  "key": {
-                    "type": "string"
-                  }
-                }
-              ],
-              "ret": "double",
-              "do": [
-                {
-                  "attr": "input_map",
-                  "path": [
-                    "key"
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  },
   "action": [
     {
       "let": {
@@ -140,24 +19,24 @@
             },
             "model.samples",
             {
+              "do": {
+                "metric.simpleEuclidean": [
+                  "x",
+                  "y.vars"
+                ]
+              },
               "params": [
                 {
                   "x": {
-                    "type": "array",
-                    "items": "double"
+                    "items": "double",
+                    "type": "array"
                   }
                 },
                 {
                   "y": "Sample"
                 }
               ],
-              "ret": "double",
-              "do": {
-                "metric.simpleEuclidean": [
-                  "x",
-                  "y.vars"
-                ]
-              }
+              "ret": "double"
             }
           ]
         }
@@ -167,16 +46,14 @@
       "let": {
         "label_list": {
           "type": {
-            "type": "array",
-            "items": "double"
+            "items": "double",
+            "type": "array"
           },
           "value": []
         }
       }
     },
     {
-      "foreach": "neighbour",
-      "in": "knn",
       "do": [
         {
           "set": {
@@ -188,12 +65,135 @@
             }
           }
         }
-      ]
+      ],
+      "foreach": "neighbour",
+      "in": "knn"
     },
     {
       "a.mean": [
         "label_list"
       ]
     }
-  ]
+  ],
+  "cells": {
+    "model": {
+      "init": {
+        "k": 1,
+        "samples": [
+          {
+            "label": 10.0,
+            "vars": [
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "label": 20.0,
+            "vars": [
+              2.0,
+              2.0
+            ]
+          }
+        ]
+      },
+      "type": {
+        "fields": [
+          {
+            "name": "k",
+            "type": "int"
+          },
+          {
+            "name": "samples",
+            "type": {
+              "items": {
+                "fields": [
+                  {
+                    "name": "vars",
+                    "type": {
+                      "items": "double",
+                      "type": "array"
+                    }
+                  },
+                  {
+                    "name": "label",
+                    "type": "double"
+                  }
+                ],
+                "name": "Sample",
+                "type": "record"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "name": "knn_model",
+        "type": "record"
+      }
+    }
+  },
+  "fcns": {
+    "toArray": {
+      "do": [
+        {
+          "let": {
+            "input_map": "m"
+          }
+        },
+        {
+          "a.map": [
+            {
+              "type": {
+                "items": "string",
+                "type": "array"
+              },
+              "value": [
+                "v1",
+                "v2"
+              ]
+            },
+            {
+              "do": [
+                {
+                  "attr": "input_map",
+                  "path": [
+                    "key"
+                  ]
+                }
+              ],
+              "params": [
+                {
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "ret": "double"
+            }
+          ]
+        }
+      ],
+      "params": [
+        {
+          "m": {
+            "type": "map",
+            "values": "double"
+          }
+        }
+      ],
+      "ret": {
+        "items": "double",
+        "type": "array"
+      }
+    }
+  },
+  "input": {
+    "doc": "Input is the list of covariables and groups",
+    "name": "DependentVariables",
+    "type": "map",
+    "values": "double"
+  },
+  "output": {
+    "doc": "Output is the estimate of the variable",
+    "type": "double"
+  }
 }
