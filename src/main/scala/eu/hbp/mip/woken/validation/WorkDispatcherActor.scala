@@ -16,7 +16,7 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{ Actor, ActorLogging, ActorRef, Cancellable, Props, Terminated }
+import akka.actor.{ Actor, ActorLogging, ActorRef, Cancellable, Props, Terminated, Timers }
 import akka.event.LoggingReceive
 import com.github.levkhomich.akka.tracing.ActorTracing
 import eu.hbp.mip.woken.messages.validation.{ ScoringQuery, ValidationQuery }
@@ -32,7 +32,7 @@ object WorkDispatcherActor {
 
 }
 
-class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
+class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing with Timers {
 
   import WorkDispatcherActor._
 
@@ -43,8 +43,6 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
   var activeValidationActors: Set[ActorRef]                      = Set.empty
   val activeValidationActorsLimit: Int                           = Math.max(1, Runtime.getRuntime.availableProcessors())
   var pendingValidationQueries: Set[(ValidationQuery, ActorRef)] = Set.empty
-
-  var timerTask: Option[Cancellable] = None
 
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
@@ -66,8 +64,8 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
           pendingValidationQueries = pendingValidationQueries - head
         }
       } else {
-        timerTask.forall(_.cancel())
-        timerTask = None
+        timers.cancel(CheckPending)
+        log.info("Stopped timer")
       }
 
     case q: ScoringQuery =>
@@ -100,13 +98,9 @@ class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing {
   }
 
   private def startTimer(): Unit =
-    if (timerTask.isEmpty) {
-      // TODO: Akka 2.5
-      //timers.startPeriodicTimer(CheckPending, Tick, 1.second)
-      timerTask = Some(
-        context.system.scheduler
-          .schedule(1.second, 1.second, context.self, CheckPending)(context.dispatcher)
-      )
+    if (!timers.isTimerActive(CheckPending)) {
+      log.info("Start timer...")
+      timers.startPeriodicTimer(CheckPending, CheckPending, 100.milliseconds)
     }
 
   private def dispatchScoring(q: ScoringQuery, replyTo: ActorRef): Unit = {

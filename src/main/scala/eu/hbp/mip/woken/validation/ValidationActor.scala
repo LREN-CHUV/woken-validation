@@ -49,10 +49,9 @@ class ValidationActor extends Actor with ActorLogging with ActorTracing {
         replyTo ! ValidationResult(fold, varInfo, outputData)
       } catch {
         // TODO Too generic!
-        case e: Exception => {
-          log.error(e, "Error while validating model: " + model)
+        case e: Exception =>
+          log.error(e, s"Error while validating model: $model")
           replyTo ! ValidationError(e.toString)
-        }
       }
 
     case e => log.error("Work not recognized by validation actor: " + e)

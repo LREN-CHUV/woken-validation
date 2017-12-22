@@ -36,8 +36,6 @@ trait Scores
   * Created by Arnaud Jutzeler
   */
 trait Scoring {
-  // Quick fix for spark 2.0.0
-  val _ = System.setProperty("spark.sql.warehouse.dir", "/tmp ")
 
   def compute(algorithmOutput: NonEmptyList[String], labels: NonEmptyList[String]): Try[Scores] = {
     val session = Scoring.spark.newSession()
@@ -58,6 +56,8 @@ trait Scoring {
 }
 
 object Scoring {
+  // Quick fix for spark 2.0.0
+  val _ = System.setProperty("spark.sql.warehouse.dir", "/tmp ")
 
   private[validation] lazy val spark: SparkSession =
     SparkSession

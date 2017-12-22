@@ -44,8 +44,12 @@ class ScoringActor extends Actor with ActorLogging with ActorTracing {
       val scores: Try[Scores] = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
 
       scores match {
-        case Success(s) => replyTo ! ScoringResult(s.toJson.asJsObject)
-        case Failure(e) => replyTo ! ScoringResult(s"""{"error": "$e"}""".parseJson.asJsObject)
+        case Success(s) =>
+          log.info("Scoring work complete")
+          replyTo ! ScoringResult(s.toJson.asJsObject)
+        case Failure(e) =>
+          log.warning(e.toString)
+          replyTo ! ScoringResult(s"""{"error": "$e"}""".parseJson.asJsObject)
       }
 
     case e => log.error("Work not recognized by scoring actor: " + e)

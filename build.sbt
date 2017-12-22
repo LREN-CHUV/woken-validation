@@ -11,6 +11,7 @@ lazy val `woken-validation` =
     .settings(settings)
     .settings(
       Seq(
+        mainClass in Runtime := Some("eu.hbp.mip.woken.validation.Main"),
         libraryDependencies ++= Seq(
           library.akkaActor,
           library.akkaRemote,
@@ -69,8 +70,8 @@ lazy val library =
     object Version {
       val scalaCheck     = "1.13.5"
       val scalaTest      = "3.0.3"
-      val akka           = "2.3.16"
-      val akkaTracing    = "0.5.2" // use 0.6.1 with akka-http
+      val akka          = "2.5.8"
+      val akkaTracing   = "0.6.1"
       val sprayJson      = "1.3.4"
       val slf4j          = "1.7.25"
       val log4j          = "2.9.1"
@@ -101,7 +102,6 @@ lazy val library =
     val akkaTracingCore: ModuleID = "com.github.levkhomich" %% "akka-tracing-core" % Version.akkaTracing
     val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
     val slf4j: ModuleID       = "org.slf4j"          % "slf4j-api"    % Version.slf4j
-    val slf4jLog4j: ModuleID  = "org.slf4j"          % "slf4j-log4j12" % Version.slf4j
     val log4jSlf4j: ModuleID  = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
     val disruptor: ModuleID   = "com.lmax"           % "disruptor"    % Version.disruptor
     val catsCore: ModuleID    = "org.typelevel"     %% "cats-core"    % Version.cats
@@ -123,7 +123,7 @@ lazy val settings = commonSettings ++ gitSettings ++ scalafmtSettings
 
 lazy val commonSettings =
   Seq(
-    scalaVersion := "2.11.8",
+    scalaVersion := "2.11.11",
     organization in ThisBuild := "eu.humanbrainproject.mip",
     organizationName in ThisBuild := "Human Brain Project MIP by LREN CHUV",
     homepage in ThisBuild := Some(url(s"https://github.com/HBPMedical/${name.value}/#readme")),
@@ -142,6 +142,7 @@ lazy val commonSettings =
       "-Yno-adapted-args",
       "-Ywarn-dead-code",
       "-Ywarn-value-discard",
+      "-Ypartial-unification",
       "-language:_",
       "-target:jvm-1.8",
       "-encoding",
@@ -151,7 +152,6 @@ lazy val commonSettings =
     unmanagedSourceDirectories.in(Compile) := Seq(scalaSource.in(Compile).value),
     unmanagedSourceDirectories.in(Test) := Seq(scalaSource.in(Test).value),
     wartremoverWarnings in (Compile, compile) ++= Warts.unsafe,
-    mainClass in Runtime := Some("eu.hbp.mip.woken.validation.Main"),
     fork in run := true,
     test in assembly := {},
     fork in Test := false,
