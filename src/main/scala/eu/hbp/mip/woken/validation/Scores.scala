@@ -67,7 +67,7 @@ object Scoring {
       .getOrCreate()
 
   def enumerateLabel(targetMetaVariable: VariableMetaData): List[String] =
-    targetMetaVariable.enumerations.fold(Nil: List[String])(_.keys.toList)
+    targetMetaVariable.enumerations.fold(Nil: List[String])(_.map(_.code))
 
   def apply(targetMetaVariable: VariableMetaData): Scoring =
     targetMetaVariable.`type` match {

@@ -42,7 +42,7 @@ class ValidationActorTest
   "A simple regression model" should {
     "validate" in {
 
-      val model = loadJson("/models/simple_regression.json").compactPrint
+      val model = loadJson("/models/simple_regression.json").asJsObject
 
       val data   = List("{\"v1\": 1, \"v2\": 2}", "{\"v1\": 2, \"v2\": 3}", "{\"v1\": 1, \"v2\": 5}")
       val labels = List("10.0", "20.0", "20.0")
@@ -52,7 +52,7 @@ class ValidationActorTest
       validationRef ! ValidationQuery("Work",
                                       model,
                                       data,
-                                      VariableMetaData("", "", "", None, None, None))
+                                      VariableMetaData("", "", "", None, None, None, None, None))
       val ValidationResult(_, _, result: List[String]) = receiveOne(60 seconds)
 
       result should contain theSameElementsInOrderAs labels

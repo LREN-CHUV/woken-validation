@@ -39,7 +39,7 @@ class ValidationActor extends Actor with ActorLogging with ActorTracing {
       val replyTo = sender()
       try {
 
-        val engine = PFAEngine.fromJson(model).head
+        val engine = PFAEngine.fromJson(model.compactPrint).head
 
         val inputData = engine.jsonInputIterator[AnyRef](data.iterator)
         val outputData: List[String] =
