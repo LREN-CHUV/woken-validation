@@ -18,7 +18,7 @@ package eu.hbp.mip.woken.validation
 
 import akka.actor.{ Actor, ActorLogging, ActorRef, Cancellable, Props, Terminated, Timers }
 import akka.event.LoggingReceive
-import com.github.levkhomich.akka.tracing.ActorTracing
+//import com.github.levkhomich.akka.tracing.ActorTracing
 import eu.hbp.mip.woken.messages.validation.{ ScoringQuery, ValidationQuery }
 
 import scala.concurrent.duration._
@@ -32,7 +32,7 @@ object WorkDispatcherActor {
 
 }
 
-class WorkDispatcherActor extends Actor with ActorLogging with ActorTracing with Timers {
+class WorkDispatcherActor extends Actor with ActorLogging /*with ActorTracing*/ with Timers {
 
   import WorkDispatcherActor._
 

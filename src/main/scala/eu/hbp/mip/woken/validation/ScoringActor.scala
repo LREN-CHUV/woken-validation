@@ -18,7 +18,7 @@ package eu.hbp.mip.woken.validation
 
 import akka.actor.{ Actor, ActorLogging, Props }
 import akka.event.LoggingReceive
-import com.github.levkhomich.akka.tracing.ActorTracing
+//import com.github.levkhomich.akka.tracing.ActorTracing
 import eu.hbp.mip.woken.messages.validation.{ ScoringQuery, ScoringResult }
 
 import scala.util.{ Failure, Success, Try }
@@ -30,7 +30,7 @@ object ScoringActor {
 
 }
 
-class ScoringActor extends Actor with ActorLogging with ActorTracing {
+class ScoringActor extends Actor with ActorLogging /*with ActorTracing*/ {
 
   override def receive: PartialFunction[Any, Unit] = LoggingReceive {
 

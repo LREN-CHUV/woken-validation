@@ -20,7 +20,7 @@ import akka.actor.{ Actor, ActorLogging, Props }
 import akka.event.LoggingReceive
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import eu.hbp.mip.woken.messages.validation._
-import com.github.levkhomich.akka.tracing.ActorTracing
+//import com.github.levkhomich.akka.tracing.ActorTracing
 
 object ValidationActor {
 
@@ -29,7 +29,7 @@ object ValidationActor {
 
 }
 
-class ValidationActor extends Actor with ActorLogging with ActorTracing {
+class ValidationActor extends Actor with ActorLogging /*with ActorTracing*/ {
 
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
