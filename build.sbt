@@ -16,6 +16,7 @@ lazy val `woken-validation` =
           library.akkaActor,
           library.akkaRemote,
           library.akkaCluster,
+          library.akkaClusterTools,
           library.akkaSlf4j,
           //library.akkaTracingCore,
           library.sprayJson,
