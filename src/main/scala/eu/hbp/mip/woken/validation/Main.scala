@@ -45,10 +45,9 @@ object Main extends App {
     // We must spawn a separate thread to not block current thread,
     // since that would have blocked the shutdown of the ActorSystem.
     new Thread {
-      override def run(): Unit = {
+      override def run(): Unit =
         if (Try(Await.ready(system.whenTerminated, 10.seconds)).isFailure)
           System.exit(-1)
-      }
     }.start()
   }
 

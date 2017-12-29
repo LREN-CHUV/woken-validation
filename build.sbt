@@ -20,6 +20,7 @@ lazy val `woken-validation` =
           //library.akkaTracingCore,
           library.sprayJson,
           library.slf4j,
+          library.jclOverSlf4j,
           library.log4jSlf4j,
           library.disruptor,
           library.catsCore,
@@ -103,6 +104,7 @@ lazy val library =
     val akkaTracingCore: ModuleID = "com.github.levkhomich" %% "akka-tracing-core" % Version.akkaTracing
     val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
     val slf4j: ModuleID       = "org.slf4j"          % "slf4j-api"    % Version.slf4j
+    val jclOverSlf4j: ModuleID = "org.slf4j"         % "jcl-over-slf4j" % Version.slf4j
     val log4jSlf4j: ModuleID  = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
     val disruptor: ModuleID   = "com.lmax"           % "disruptor"    % Version.disruptor
     val catsCore: ModuleID    = "org.typelevel"     %% "cats-core"    % Version.cats
