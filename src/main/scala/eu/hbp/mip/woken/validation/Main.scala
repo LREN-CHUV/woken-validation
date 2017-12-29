@@ -16,17 +16,40 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{ ActorSystem, Props }
+import akka.actor.ActorSystem
 import akka.cluster.Cluster
+import com.typesafe.config.ConfigFactory
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.util.Try
 
 object Main extends App {
 
-  val system = ActorSystem("woken")
+  val config = ConfigFactory.load()
+  val system = ActorSystem(config.getString("clustering.cluster.name"), config)
 
-  // TODO Read the address from env vars
-  //Cluster(system).join(Address("akka.tcp", "woken", "127.0.0.1", 8088))
   lazy val cluster = Cluster(system)
 
   // Start the local work dispatcher actor
-  val dispatcherActor = system.actorOf(WorkDispatcherActor.props, name = "validation")
+  Cluster(system) registerOnMemberUp {
+    system.actorOf(WorkDispatcherActor.props, name = "validation")
+  }
+
+  Cluster(system).registerOnMemberRemoved {
+    system.registerOnTermination(System.exit(0))
+    system.terminate()
+
+    // In case ActorSystem shutdown takes longer than 10 seconds,
+    // exit the JVM forcefully anyway.
+    // We must spawn a separate thread to not block current thread,
+    // since that would have blocked the shutdown of the ActorSystem.
+    new Thread {
+      override def run(): Unit = {
+        if (Try(Await.ready(system.whenTerminated, 10.seconds)).isFailure)
+          System.exit(-1)
+      }
+    }.start()
+  }
+
 }
