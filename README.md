@@ -8,6 +8,25 @@ This software requires [Woken](https://github.com/HBPMedical/woken) to work, as 
 
 It embeds [Apache Spark](http://spark.apache.org/) which provides the numerical methods for benchmarking and model scoring.
 
+## Usage
+
+```sh
+
+ docker run --rm --env [list of environment variables] --link woken hbpmip/voken-validation:2.1.3
+
+```
+
+where the environment variables are:
+
+* CLUSTER_IP: Name of this server advertised in the Akka cluster
+* CLUSTER_PORT: Port of this server advertised in the Akka cluster
+* WOKEN_PORT_8088_TCP_ADDR: Address of Woken master server
+* WOKEN_PORT_8088_TCP_PORT: Port of Woken master server
+* LOG_LEVEL: Level for logs, default to DEBUG
+* SDTOUT_LOG_LEVEL: Level for logs on standard output, default to WARNING
+* AKKA_TRACING: if set to true, enables Akka tracing (experimental, not working yet)
+* UDP_ARTERY: if set to true, enables UDP and Akka Artery for communication (experimental, not working yet)
+
 ## How to build
 
 Prerequisites: docker, captain

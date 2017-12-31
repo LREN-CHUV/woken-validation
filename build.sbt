@@ -19,6 +19,8 @@ lazy val `woken-validation` =
           library.akkaClusterTools,
           library.akkaSlf4j,
           //library.akkaTracingCore,
+          library.akkaHttp,
+          library.akkaHttpJson,
           library.sprayJson,
           library.slf4j,
           library.jclOverSlf4j,
@@ -72,8 +74,9 @@ lazy val library =
     object Version {
       val scalaCheck     = "1.13.5"
       val scalaTest      = "3.0.3"
-      val akka          = "2.5.8"
-      val akkaTracing   = "0.6.1"
+      val akka           = "2.5.8"
+      val akkaTracing    = "0.6.1"
+      val akkaHttp       = "10.0.11"
       val sprayJson      = "1.3.4"
       val slf4j          = "1.7.25"
       val log4j          = "2.9.1"
@@ -104,6 +107,8 @@ lazy val library =
     val akkaSlf4j: ModuleID   = "com.typesafe.akka" %% "akka-slf4j"   % Version.akka
     val akkaTestkit: ModuleID = "com.typesafe.akka" %% "akka-testkit" % Version.akka
     val akkaTracingCore: ModuleID = "com.github.levkhomich" %% "akka-tracing-core" % Version.akkaTracing
+    val akkaHttp: ModuleID = "com.typesafe.akka" %% "akka-http" % Version.akkaHttp
+    val akkaHttpJson: ModuleID = "com.typesafe.akka" %% "akka-http-spray-json" % Version.akkaHttp
     val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
     val slf4j: ModuleID       = "org.slf4j"          % "slf4j-api"    % Version.slf4j
     val jclOverSlf4j: ModuleID = "org.slf4j"         % "jcl-over-slf4j" % Version.slf4j

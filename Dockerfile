@@ -18,6 +18,7 @@ RUN sbt compile
 
 # Second caching layer: project sources
 COPY src/ /build/src/
+COPY docker/ /build/docker/
 COPY .git/ /build/.git/
 COPY .circleci/ /build/.circleci/
 COPY .*.cfg .*ignore .*.yaml .*.conf *.md *.sh *.yml *.json Dockerfile LICENSE /build/
@@ -26,7 +27,7 @@ RUN /check-sources.sh
 
 RUN sbt test assembly
 
-FROM hbpmip/java-base:8u131-2
+FROM hbpmip/java-base:8u151-0
 
 MAINTAINER Ludovic Claude <ludovic.claude@chuv.ch>
 
@@ -34,7 +35,8 @@ ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
 
-RUN mkdir -p /opt/woken-validation/config
+COPY docker/run.sh /
+COPY docker/config/application.conf.tmpl /opt/woken-validation/config/
 
 RUN adduser -H -D -u 1000 woken \
     && chown -R woken:woken /opt/woken-validation
@@ -42,6 +44,12 @@ RUN adduser -H -D -u 1000 woken \
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
 
 USER woken
+
+WORKDIR /opt/woken-validation
+
+ENTRYPOINT ["/run.sh"]
+
+EXPOSE 8081 8082
 
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="hbpmip/woken-validation" \
@@ -56,7 +64,3 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.docker.dockerfile="Dockerfile" \
       org.label-schema.memory-hint="2048" \
       org.label-schema.schema-version="1.0"
-
-WORKDIR /opt/woken-validation
-
-ENTRYPOINT java -jar -Dconfig.file=config/application.conf woken-validation.jar

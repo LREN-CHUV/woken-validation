@@ -34,6 +34,7 @@ object Main extends App {
   // Start the local work dispatcher actor
   Cluster(system) registerOnMemberUp {
     system.actorOf(WorkDispatcherActor.props, name = "validation")
+    system.actorOf(WorkDispatcherActor.props, name = "scoring")
   }
 
   Cluster(system).registerOnMemberRemoved {

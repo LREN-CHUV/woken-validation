@@ -16,7 +16,9 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{ Actor, ActorLogging, ActorRef, Cancellable, Props, Terminated, Timers }
+import java.util.UUID
+
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated, Timers}
 import akka.event.LoggingReceive
 //import com.github.levkhomich.akka.tracing.ActorTracing
 import eu.hbp.mip.woken.messages.validation.{ ScoringQuery, ValidationQuery }
@@ -105,7 +107,7 @@ class WorkDispatcherActor extends Actor with ActorLogging /*with ActorTracing*/ 
 
   private def dispatchScoring(q: ScoringQuery, replyTo: ActorRef): Unit = {
     log.info(s"Dispatch scoring query")
-    val scoringActorRef = context.actorOf(ScoringActor.props)
+    val scoringActorRef = context.actorOf(ScoringActor.props, s"scoring_${q.targetMetaData.code}_${UUID.randomUUID}")
     scoringActorRef.tell(q, replyTo)
     context watch scoringActorRef
     activeScoringActors += scoringActorRef
@@ -113,7 +115,7 @@ class WorkDispatcherActor extends Actor with ActorLogging /*with ActorTracing*/ 
 
   private def dispatchValidation(q: ValidationQuery, replyTo: ActorRef): Unit = {
     log.info(s"Dispatch validation query")
-    val validationActorRef = context.actorOf(ValidationActor.props)
+    val validationActorRef = context.actorOf(ValidationActor.props, s"validation_${q.varInfo.code}_${UUID.randomUUID}")
     validationActorRef.tell(q, replyTo)
     context watch validationActorRef
     activeValidationActors += validationActorRef
