@@ -81,6 +81,15 @@ akka {
   }
 }
 
+akka.http {
+  server {
+    idle-timeout = 300s
+    request-timeout = 180s
+    ssl-encryption = off
+    ssl-tracing = on
+  }
+}
+
 clustering {
   ip = "127.0.0.1"
   ip = ${?CLUSTER_IP}
@@ -92,4 +101,11 @@ clustering {
   seed-port = 8088
   seed-port = ${?WOKEN_PORT_8088_TCP_PORT}
   cluster.name = "woken"
+}
+
+http {
+  networkInterface = "0.0.0.0"
+  networkInterface = ${?HTTP_LISTEN_INTERFACE}
+  port = 8081
+  port = ${?HTTP_PORT}
 }

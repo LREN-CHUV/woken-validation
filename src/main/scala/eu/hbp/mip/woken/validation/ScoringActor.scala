@@ -52,7 +52,7 @@ class ScoringActor extends Actor with ActorLogging /*with ActorTracing*/ {
           replyTo ! ScoringResult(s"""{"error": "$e"}""".parseJson.asJsObject)
       }
 
-    case e => log.error("Work not recognized by scoring actor: " + e)
+    case e => log.error(s"Work not recognized by scoring actor: $e")
   }
 
 }

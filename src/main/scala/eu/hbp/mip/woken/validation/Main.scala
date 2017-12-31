@@ -18,16 +18,28 @@ package eu.hbp.mip.woken.validation
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
+import org.slf4j.LoggerFactory
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, ExecutionContextExecutor, Future }
 import scala.concurrent.duration._
 import scala.util.Try
 
 object Main extends App {
 
-  val config = ConfigFactory.load()
-  val system = ActorSystem(config.getString("clustering.cluster.name"), config)
+  private val logger = LoggerFactory.getLogger("WokenValidation")
+
+  val config                                              = ConfigFactory.load()
+  private val clusterSystemName                           = config.getString("clustering.cluster.name")
+  implicit val system: ActorSystem                        = ActorSystem(clusterSystemName, config)
+  implicit val materializer: ActorMaterializer            = ActorMaterializer()
+  implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+
+  logger.info(s"Starting actor system $clusterSystemName")
 
   lazy val cluster = Cluster(system)
 
@@ -51,5 +63,18 @@ object Main extends App {
           System.exit(-1)
     }.start()
   }
+
+  val routes: Route = pathPrefix("health") {
+    get {
+      complete("UP")
+    }
+  }
+
+  // start a new HTTP server on port 8080 with our service actor as the handler
+  val binding: Future[Http.ServerBinding] = Http().bindAndHandle(
+    handler = routes,
+    interface = config.getString("http.networkInterface"),
+    port = config.getInt("http.port")
+  )
 
 }

@@ -18,7 +18,7 @@ package eu.hbp.mip.woken.validation
 
 import java.util.UUID
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated, Timers}
+import akka.actor.{ Actor, ActorLogging, ActorRef, Props, Terminated, Timers }
 import akka.event.LoggingReceive
 //import com.github.levkhomich.akka.tracing.ActorTracing
 import eu.hbp.mip.woken.messages.validation.{ ScoringQuery, ValidationQuery }
@@ -95,7 +95,7 @@ class WorkDispatcherActor extends Actor with ActorLogging /*with ActorTracing*/ 
       activeScoringActors -= a
       activeValidationActors -= a
 
-    case e => log.error("Work not recognized!: " + e)
+    case e => log.error(s"Work not recognized!: $e")
 
   }
 
@@ -107,7 +107,8 @@ class WorkDispatcherActor extends Actor with ActorLogging /*with ActorTracing*/ 
 
   private def dispatchScoring(q: ScoringQuery, replyTo: ActorRef): Unit = {
     log.info(s"Dispatch scoring query")
-    val scoringActorRef = context.actorOf(ScoringActor.props, s"scoring_${q.targetMetaData.code}_${UUID.randomUUID}")
+    val scoringActorRef =
+      context.actorOf(ScoringActor.props, s"scoring_${q.targetMetaData.code}_${UUID.randomUUID}")
     scoringActorRef.tell(q, replyTo)
     context watch scoringActorRef
     activeScoringActors += scoringActorRef
@@ -115,7 +116,8 @@ class WorkDispatcherActor extends Actor with ActorLogging /*with ActorTracing*/ 
 
   private def dispatchValidation(q: ValidationQuery, replyTo: ActorRef): Unit = {
     log.info(s"Dispatch validation query")
-    val validationActorRef = context.actorOf(ValidationActor.props, s"validation_${q.varInfo.code}_${UUID.randomUUID}")
+    val validationActorRef =
+      context.actorOf(ValidationActor.props, s"validation_${q.varInfo.code}_${UUID.randomUUID}")
     validationActorRef.tell(q, replyTo)
     context watch validationActorRef
     activeValidationActors += validationActorRef

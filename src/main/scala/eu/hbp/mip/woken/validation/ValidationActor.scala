@@ -54,6 +54,6 @@ class ValidationActor extends Actor with ActorLogging /*with ActorTracing*/ {
           replyTo ! ValidationError(e.toString)
       }
 
-    case e => log.error("Work not recognized by validation actor: " + e)
+    case e => log.error(s"Work not recognized by validation actor: $e")
   }
 }

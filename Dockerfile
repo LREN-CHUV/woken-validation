@@ -49,7 +49,12 @@ WORKDIR /opt/woken-validation
 
 ENTRYPOINT ["/run.sh"]
 
-EXPOSE 8081 8082
+# Health checks on http://host:8081/health
+# Akka on 8082
+# Spark UI on 4040
+EXPOSE 8081 8082 4040
+
+HEALTHCHECK CMD curl -v --silent http://localhost:8081/health 2>&1 | grep UP
 
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="hbpmip/woken-validation" \
