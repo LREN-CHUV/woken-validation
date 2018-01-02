@@ -25,9 +25,10 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ Await, ExecutionContextExecutor }
 import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.util.Try
 
-object Main extends HttpApp {
+object Main extends App {
 
   private val logger = LoggerFactory.getLogger("WokenValidation")
 
@@ -37,17 +38,22 @@ object Main extends HttpApp {
   implicit val materializer: ActorMaterializer            = ActorMaterializer()
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
-  logger.info(s"Starting actor system $clusterSystemName")
+  logger.info(s"Step 1/3: Starting actor system $clusterSystemName...")
 
   lazy val cluster = Cluster(system)
 
-  // Start the local work dispatcher actor
+  // Start the local work dispatcher actors
   Cluster(system) registerOnMemberUp {
-    system.actorOf(WorkDispatcherActor.props, name = "validation")
-    system.actorOf(WorkDispatcherActor.props, name = "scoring")
+    logger.info("Step 2/3: Cluster up, registering the actors...")
+
+    system.actorOf(ValidationActor.roundRobinPoolProps(config), name = "validation")
+    system.actorOf(ScoringActor.roundRobinPoolProps(config), name = "scoring")
+
+    logger.info("Step 3/3: Startup complete.")
   }
 
   Cluster(system).registerOnMemberRemoved {
+    logger.info("Exiting...")
     system.registerOnTermination(System.exit(0))
     system.terminate()
 
@@ -62,13 +68,18 @@ object Main extends HttpApp {
     }.start()
   }
 
-  override def routes: Route = pathPrefix("health") {
-    get {
-      complete("UP")
+  object HttpServer extends HttpApp {
+    override def routes: Route = pathPrefix("health") {
+      get {
+        complete("UP")
+      }
     }
+
   }
 
   // Start a new HTTP server on port 8081 with our service actor as the handler
-  startServer(config.getString("http.networkInterface"), config.getInt("http.port"), system)
+  HttpServer.startServer(config.getString("http.networkInterface"),
+                         config.getInt("http.port"),
+                         system)
 
 }

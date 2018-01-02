@@ -16,17 +16,42 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{ Actor, ActorLogging, Props }
+import akka.actor.SupervisorStrategy.Restart
+import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
+import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
+import com.typesafe.config.Config
 //import com.github.levkhomich.akka.tracing.ActorTracing
 import eu.hbp.mip.woken.messages.validation.{ ScoringQuery, ScoringResult }
 
 import scala.util.{ Failure, Success, Try }
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 object ScoringActor {
 
   def props: Props =
     Props(new ScoringActor())
+
+  def roundRobinPoolProps(config: Config): Props = {
+    val scoringResizer = OptimalSizeExploringResizer(
+      config
+        .getConfig("scoring.resizer")
+        .withFallback(
+          config.getConfig("akka.actor.deployment.default.optimal-size-exploring-resizer")
+        )
+    )
+    val scoringSupervisorStrategy =
+      OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+        case _: Exception => Restart
+      }
+
+    RoundRobinPool(
+      1,
+      resizer = Some(scoringResizer),
+      supervisorStrategy = scoringSupervisorStrategy
+    ).props(ScoringActor.props)
+  }
 
 }
 

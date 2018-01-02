@@ -1,6 +1,6 @@
 akka {
-  loglevel = {{ default .Env.LOG_LEVEL "DEBUG" }}
-  stdout-loglevel = {{ default .Env.SDTOUT_LOG_LEVEL "WARNING" }}
+  loglevel = {{ default .Env.LOG_LEVEL "WARNING" }}
+  stdout-loglevel = {{ default .Env.LOG_LEVEL "WARNING" }}
   loggers = ["akka.event.slf4j.Slf4jLogger"]
   logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"
 
@@ -31,13 +31,14 @@ akka {
     enable-additional-serialization-bindings = on
 
     debug {
-      receive = off
+      receive = on
       autoreceive = off
       lifecycle = on
       fsm = on
       unhandled = on
       event-stream = off
     }
+
   }
 
   remote {
@@ -101,6 +102,27 @@ clustering {
   seed-port = 8088
   seed-port = ${?WOKEN_PORT_8088_TCP_PORT}
   cluster.name = "woken"
+}
+
+validation.resizer {
+  enabled = on
+  # The fewest number of routees the router should ever have.
+  lower-bound = 1
+  # The most number of routees the router should ever have.
+  # Must be greater than or equal to lower-bound.
+  upper-bound = 10
+  action-interval = 5s
+  downsize-after-underutilized-for = 72h
+}
+
+scoring.resizer {
+  enabled = on
+  lower-bound = 1
+  # The most number of routees the router should ever have.
+  # Must be greater than or equal to lower-bound.
+  upper-bound = 10
+  action-interval = 5s
+  downsize-after-underutilized-for = 72h
 }
 
 http {

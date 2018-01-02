@@ -16,18 +16,45 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.SupervisorStrategy.Restart
+import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
+import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
+import com.typesafe.config.Config
 import eu.hbp.mip.woken.messages.validation._
 
-import scala.util.Try
 //import com.github.levkhomich.akka.tracing.ActorTracing
+
+import scala.util.Try
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 object ValidationActor {
 
   def props: Props =
     Props(new ValidationActor())
+
+  def roundRobinPoolProps(config: Config): Props = {
+
+    val validationResizer = OptimalSizeExploringResizer(
+      config
+        .getConfig("validation.resizer")
+        .withFallback(
+          config.getConfig("akka.actor.deployment.default.optimal-size-exploring-resizer")
+        )
+    )
+    val validationSupervisorStrategy =
+      OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+        case _: Exception => Restart
+      }
+
+    RoundRobinPool(
+      1,
+      resizer = Some(validationResizer),
+      supervisorStrategy = validationSupervisorStrategy
+    ).props(ValidationActor.props)
+  }
 
 }
 
