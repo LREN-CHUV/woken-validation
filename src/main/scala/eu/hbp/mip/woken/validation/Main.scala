@@ -18,22 +18,20 @@ package eu.hbp.mip.woken.validation
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{ HttpApp, Route }
 import akka.stream.ActorMaterializer
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.{ Await, ExecutionContextExecutor, Future }
+import scala.concurrent.{ Await, ExecutionContextExecutor }
 import scala.concurrent.duration._
 import scala.util.Try
 
-object Main extends App {
+object Main extends HttpApp {
 
   private val logger = LoggerFactory.getLogger("WokenValidation")
 
-  val config                                              = ConfigFactory.load()
+  val config: Config                                      = ConfigFactory.load()
   private val clusterSystemName                           = config.getString("clustering.cluster.name")
   implicit val system: ActorSystem                        = ActorSystem(clusterSystemName, config)
   implicit val materializer: ActorMaterializer            = ActorMaterializer()
@@ -64,17 +62,13 @@ object Main extends App {
     }.start()
   }
 
-  val routes: Route = pathPrefix("health") {
+  override def routes: Route = pathPrefix("health") {
     get {
       complete("UP")
     }
   }
 
-  // start a new HTTP server on port 8080 with our service actor as the handler
-  val binding: Future[Http.ServerBinding] = Http().bindAndHandle(
-    handler = routes,
-    interface = config.getString("http.networkInterface"),
-    port = config.getInt("http.port")
-  )
+  // Start a new HTTP server on port 8081 with our service actor as the handler
+  startServer(config.getString("http.networkInterface"), config.getInt("http.port"), system)
 
 }

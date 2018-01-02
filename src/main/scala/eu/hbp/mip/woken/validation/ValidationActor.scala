@@ -16,10 +16,12 @@
 
 package eu.hbp.mip.woken.validation
 
-import akka.actor.{ Actor, ActorLogging, Props }
+import akka.actor.{Actor, ActorLogging, Props}
 import akka.event.LoggingReceive
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import eu.hbp.mip.woken.messages.validation._
+
+import scala.util.Try
 //import com.github.levkhomich.akka.tracing.ActorTracing
 
 object ValidationActor {
@@ -37,7 +39,7 @@ class ValidationActor extends Actor with ActorLogging /*with ActorTracing*/ {
       log.info("Received validation work!")
       // Reconstruct model using hadrian and validate over the provided data
       val replyTo = sender()
-      try {
+      Try {
 
         val engine = PFAEngine.fromJson(model.compactPrint).head
 
@@ -47,8 +49,8 @@ class ValidationActor extends Actor with ActorLogging /*with ActorTracing*/ {
         log.info("Validation work for " + fold + " done!")
 
         replyTo ! ValidationResult(fold, varInfo, outputData)
-      } catch {
-        // TODO Too generic!
+
+      }.recover {
         case e: Exception =>
           log.error(e, s"Error while validating model: $model")
           replyTo ! ValidationError(e.toString)

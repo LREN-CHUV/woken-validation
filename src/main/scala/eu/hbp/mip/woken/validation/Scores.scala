@@ -17,9 +17,7 @@
 package eu.hbp.mip.woken.validation
 
 import org.apache.spark.sql.{ Row, SparkSession }
-import org.apache.spark.mllib.evaluation.MulticlassMetrics
-import org.apache.spark.mllib.evaluation.RegressionMetrics
-import spray.json.{ JsNumber, JsObject, JsString, JsValue, JsonFormat }
+import org.apache.spark.mllib.evaluation.{ MulticlassMetrics, RegressionMetrics }
 import spray.json._
 import DefaultJsonProtocol._
 import eu.hbp.mip.woken.meta.VariableMetaData

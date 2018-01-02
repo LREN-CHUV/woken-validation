@@ -52,18 +52,18 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
     scores.isSuccess shouldBe true
 
-    val json_object = scores.get.toJson
+    val json = scores.get.toJson
 
-    json_object.asJsObject.fields("Confusion matrix").compactPrint should equal(
+    json.asJsObject.fields("Confusion matrix").compactPrint should equal(
       "{\"labels\":[\"a\",\"b\"],\"values\":[[2.0,2.0],[1.0,1.0]]}"
     )
-    json_object.asJsObject.fields("Accuracy").convertTo[Double] should equal(0.5)
-    json_object.asJsObject.fields("Precision").convertTo[Double] should equal(2 / 3.0)
-    json_object.asJsObject.fields("Recall").convertTo[Double] should equal(0.5)
-    json_object.asJsObject.fields("F1-score").convertTo[Double] should equal(0.5714)
-    json_object.asJsObject.fields("False positive rate").convertTo[Double] should equal(0.5)
+    json.asJsObject.fields("Accuracy").convertTo[Double] should equal(0.5)
+    json.asJsObject.fields("Precision").convertTo[Double] should equal(2 / 3.0)
+    json.asJsObject.fields("Recall").convertTo[Double] should equal(0.5)
+    json.asJsObject.fields("F1-score").convertTo[Double] should equal(0.5714)
+    json.asJsObject.fields("False positive rate").convertTo[Double] should equal(0.5)
 
-    assertResult(loadJson("/binary_classification.json"))(json_object)
+    assertResult(loadJson("/binary_classification.json"))(json)
   }
 
   /*"BinaryClassificationThresholdScore " should "be correct" in {
@@ -134,26 +134,26 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
     scores.isSuccess shouldBe true
 
-    val json_object = scores.get.toJson
+    val json = scores.get.toJson
 
-    json_object.asJsObject.fields("Confusion matrix").compactPrint should equal(
+    json.asJsObject.fields("Confusion matrix").compactPrint should equal(
       "{\"labels\":[\"a\",\"b\",\"c\"],\"values\":[[1.0,1.0,1.0],[1.0,1.0,0.0],[0.0,0.0,1.0]]}"
     )
-    json_object.asJsObject.fields("Accuracy").convertTo[Double] should equal(0.5)
-    json_object.asJsObject
+    json.asJsObject.fields("Accuracy").convertTo[Double] should equal(0.5)
+    json.asJsObject
       .fields("Weighted Recall")
       .convertTo[Double] should equal(0.5) // a:1/3 (3), b: 1/2 (2), c:1/1 (1)
-    json_object.asJsObject
+    json.asJsObject
       .fields("Weighted Precision")
       .convertTo[Double] should equal(0.5) // a:1/2 (3), b:1/2 (2), c:1/2 (1)
-    json_object.asJsObject
+    json.asJsObject
       .fields("Weighted F1-score")
       .convertTo[Double] should equal(0.47777) // a:2/5 (3), b:1/2 (2), c:2/3 (1)
-    json_object.asJsObject.fields("Weighted false positive rate").convertTo[Double] should equal(
+    json.asJsObject.fields("Weighted false positive rate").convertTo[Double] should equal(
       0.2833
     ) // a:1/3 (3), b:1/4 (2), c:1/5 (1)
 
-    assertResult(loadJson("/classification_score.json"))(json_object)
+    assertResult(loadJson("/classification_score.json"))(json)
   }
 
   "RegressionScores " should "be correct" in {
@@ -171,17 +171,17 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
     scores.isSuccess shouldBe true
 
-    val json_object = scores.get.toJson
+    val json = scores.get.toJson
 
-    json_object.asJsObject.fields("R-squared").convertTo[Double] should equal(-0.2352)
-    json_object.asJsObject.fields("RMSE").convertTo[Double] should equal(433.7)
-    json_object.asJsObject.fields("MSE").convertTo[Double] should equal(188096.919)
-    json_object.asJsObject.fields("MAE").convertTo[Double] should equal(204.8469)
-    json_object.asJsObject
+    json.asJsObject.fields("R-squared").convertTo[Double] should equal(-0.2352)
+    json.asJsObject.fields("RMSE").convertTo[Double] should equal(433.7)
+    json.asJsObject.fields("MSE").convertTo[Double] should equal(188096.919)
+    json.asJsObject.fields("MAE").convertTo[Double] should equal(204.8469)
+    json.asJsObject
       .fields("Explained variance")
       .convertTo[Double] should equal(42048.9776) // E(y) = 211.64, SSreg = 252293.8657
 
-    assertResult(loadJson("/regression_score.json"))(json_object)
+    assertResult(loadJson("/regression_score.json"))(json)
   }
 
   "RegressionScores 2" should "be correct" in {
@@ -199,16 +199,16 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
     scores.isSuccess shouldBe true
 
-    val json_object = scores.get.toJson
+    val json = scores.get.toJson
 
-    json_object.asJsObject.fields("R-squared").convertTo[Double] should equal(0.84153)
-    json_object.asJsObject.fields("RMSE").convertTo[Double] should equal(155.34)
-    json_object.asJsObject.fields("MSE").convertTo[Double] should equal(24129.974)
-    json_object.asJsObject.fields("MAE").convertTo[Double] should equal(70.9566)
-    json_object.asJsObject
+    json.asJsObject.fields("R-squared").convertTo[Double] should equal(0.84153)
+    json.asJsObject.fields("RMSE").convertTo[Double] should equal(155.34)
+    json.asJsObject.fields("MSE").convertTo[Double] should equal(24129.974)
+    json.asJsObject.fields("MAE").convertTo[Double] should equal(70.9566)
+    json.asJsObject
       .fields("Explained variance")
       .convertTo[Double] should equal(65729.0537) // E(y) = 211.64, SSreg = 394374.3226
 
-    assertResult(loadJson("/regression_score2.json"))(json_object)
+    assertResult(loadJson("/regression_score2.json"))(json)
   }
 }

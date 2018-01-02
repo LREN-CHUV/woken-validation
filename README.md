@@ -21,7 +21,7 @@ where the environment variables are:
 * CLUSTER_IP: Name of this server advertised in the Akka cluster
 * CLUSTER_PORT: Port of this server advertised in the Akka cluster
 * WOKEN_PORT_8088_TCP_ADDR: Address of Woken master server
-* WOKEN_PORT_8088_TCP_PORT: Port of Woken master server
+* WOKEN_PORT_8088_TCP_PORT: Port of Woken master server, default to 8088
 * LOG_LEVEL: Level for logs, default to DEBUG
 * SDTOUT_LOG_LEVEL: Level for logs on standard output, default to WARNING
 * AKKA_TRACING: if set to true, enables Akka tracing (experimental, not working yet)
