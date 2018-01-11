@@ -53,9 +53,10 @@ class ValidationActorTest
                                       model,
                                       data,
                                       VariableMetaData("", "", "", None, None, None, None, None))
-      val ValidationResult(_, _, result: List[String]) = receiveOne(60 seconds)
+      val ValidationResult(_, _, result: List[String], error) = receiveOne(60 seconds)
 
       result should contain theSameElementsInOrderAs labels
+      error shouldBe None
 
     }
   }

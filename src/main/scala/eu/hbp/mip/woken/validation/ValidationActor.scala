@@ -75,12 +75,12 @@ class ValidationActor extends Actor with ActorLogging /*with ActorTracing*/ {
           inputData.map(x => { engine.jsonOutput(engine.action(x)) }).toList
         log.info("Validation work for " + fold + " done!")
 
-        replyTo ! ValidationResult(fold, varInfo, outputData)
+        replyTo ! ValidationResult(fold, varInfo, outputData, None)
 
       }.recover {
         case e: Exception =>
           log.error(e, s"Error while validating model: $model")
-          replyTo ! ValidationError(e.toString)
+          replyTo ! ValidationResult(fold, varInfo, Nil, Some(e.toString))
       }
 
     case e => log.error(s"Work not recognized by validation actor: $e")
