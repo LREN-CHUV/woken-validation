@@ -48,10 +48,12 @@ class ValidationActorTest
 
       val validationRef = system.actorOf(Props[ValidationActor])
 
-      validationRef ! ValidationQuery("Work",
-                                      model,
-                                      data,
-                                      VariableMetaData("", "", "", None, None, None, None, None))
+      validationRef ! ValidationQuery(
+        "Work",
+        model,
+        data,
+        VariableMetaData("", "", "", None, None, None, None, None, Set())
+      )
       val ValidationResult(_, _, result: List[String], error) = receiveOne(60 seconds)
 
       result should contain theSameElementsInOrderAs labels

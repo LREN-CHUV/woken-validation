@@ -90,12 +90,12 @@ lazy val library =
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
       val excludeMail = ExclusionRule(organization = "javax.mail")
-      val excludeNettyIo = ExclusionRule(organization = "io.netty", artifact = "netty-all")
+      val excludeNettyIo = ExclusionRule(organization = "io.netty", name = "netty-all")
       val excludeQQ = ExclusionRule(organization = "org.scalamacros")
       val excludeParquet = ExclusionRule(organization = "org.apache.parquet")
       val excludeNlp = ExclusionRule(organization = "org.scalanlp")
       val excludeHadoop = ExclusionRule(organization = "org.apache.hadoop")
-      val excludeSlf4jLog4j12 = ExclusionRule(organization = "org.slf4j", artifact = "slf4j-log4j12")
+      val excludeSlf4jLog4j12 = ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12")
       val sparkExclusions = Seq(excludeIvy, excludeMail, excludeSlf4jLog4j12)
     }
     val scalaCheck: ModuleID  = "org.scalacheck"    %% "scalacheck"   % Version.scalaCheck
@@ -181,5 +181,5 @@ lazy val scalafmtSettings =
   Seq(
     scalafmtOnCompile := true,
     scalafmtOnCompile.in(Sbt) := false,
-    scalafmtVersion := "1.1.0"
+    scalafmtVersion := "1.4.0"
   )
