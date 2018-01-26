@@ -18,9 +18,8 @@ package eu.hbp.mip.woken.validation
 
 import akka.actor.{ ActorSystem, Props }
 import akka.testkit.{ ImplicitSender, TestKit }
-import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import eu.hbp.mip.woken.messages.validation.{ ValidationQuery, ValidationResult }
-import eu.hbp.mip.woken.meta.VariableMetaData
+import eu.hbp.mip.woken.messages.variables.VariableMetaData
 import eu.hbp.mip.woken.validation.util.JsonUtils
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 

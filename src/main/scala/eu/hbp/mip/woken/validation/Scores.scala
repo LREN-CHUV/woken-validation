@@ -20,7 +20,7 @@ import org.apache.spark.sql.{ Row, SparkSession }
 import org.apache.spark.mllib.evaluation.{ MulticlassMetrics, RegressionMetrics }
 import spray.json._
 import DefaultJsonProtocol._
-import eu.hbp.mip.woken.meta.VariableMetaData
+import eu.hbp.mip.woken.messages.variables.VariableMetaData
 import cats.data.NonEmptyList
 
 import scala.util.Try
