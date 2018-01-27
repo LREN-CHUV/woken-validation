@@ -40,13 +40,19 @@ akka {
 
     serializers {
       kryo = "com.twitter.chill.akka.AkkaSerializer"
+      proto = "akka.remote.serialization.ProtobufSerializer"
     }
-    enable-additional-serialization-bindings = on
 
     serialization-bindings {
       "scala.Product" = kryo
-      "java.io.Serializable" = kryo
+      "java.io.Serializable" = proto
+      "com.google.protobuf.GeneratedMessage" = proto
+      "akka.Done"                 = akka-misc
+      "akka.actor.Address"        = akka-misc
+      "akka.remote.UniqueAddress" = akka-misc
     }
+    enable-additional-serialization-bindings = on
+    allow-java-serialization = off
 
   }
 
