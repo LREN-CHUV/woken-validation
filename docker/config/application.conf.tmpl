@@ -39,20 +39,33 @@ akka {
     }
 
     serializers {
-      kryo = "com.twitter.chill.akka.AkkaSerializer"
+      kryo = "com.romix.akka.serialization.kryo.KryoSerializer"
       proto = "akka.remote.serialization.ProtobufSerializer"
     }
 
+    # configuration of the serialization library
+    kryo {
+      post-serialization-transformations = "off"
+      idstrategy = "default"
+      kryo-trace = false
+      implicit-registration-logging = false
+    }
+
     serialization-bindings {
-      "scala.Product" = kryo
-      "java.io.Serializable" = proto
+      "eu.hbp.mip.woken.messages.validation.ScoringQuery" = kryo
+      "eu.hbp.mip.woken.messages.validation.ScoringResult" = kryo
+      "eu.hbp.mip.woken.messages.validation.ValidationQuery" = kryo
+      "eu.hbp.mip.woken.messages.validation.ValidationResult" = kryo
+      "akka.actor.ActorSelectionMessage" = akka-containers
+      "akka.remote.DaemonMsgCreate" = daemon-create
+      "akka.remote.artery.ArteryMessage" = artery
+      "akka.protobuf.GeneratedMessage" = proto
       "com.google.protobuf.GeneratedMessage" = proto
-      "akka.Done"                 = akka-misc
-      "akka.actor.Address"        = akka-misc
-      "akka.remote.UniqueAddress" = akka-misc
+      "java.util.Optional" = akka-misc
     }
     enable-additional-serialization-bindings = on
-    allow-java-serialization = off
+    allow-java-serialization = on
+    warn-about-java-serializer-usage = on
 
   }
 

@@ -22,7 +22,7 @@ lazy val `woken-validation` =
           library.akkaHttp,
           library.akkaHttpJson,
           library.sprayJson,
-          library.chill,
+          library.kryoSerialization,
           library.slf4j,
           library.jclOverSlf4j,
           library.log4jSlf4j,
@@ -79,7 +79,7 @@ lazy val library =
       val akkaTracing    = "0.6.1"
       val akkaHttp       = "10.1.0-RC1"
       val sprayJson      = "1.3.4"
-      val chill          = "0.9.2"
+      val kryoSerialization = "0.5.3-0.ss.1"
       val slf4j          = "1.7.25"
       val log4j          = "2.9.1"
       val disruptor      = "3.3.7"
@@ -112,7 +112,7 @@ lazy val library =
     val akkaHttp: ModuleID = "com.typesafe.akka" %% "akka-http" % Version.akkaHttp
     val akkaHttpJson: ModuleID = "com.typesafe.akka" %% "akka-http-spray-json" % Version.akkaHttp
     val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
-    val chill: ModuleID       = "com.twitter"       %% "chill-akka"   % Version.chill
+    val kryoSerialization: ModuleID = "com.github.romix.akka" %% "akka-kryo-serialization" % Version.kryoSerialization
     val slf4j: ModuleID       = "org.slf4j"          % "slf4j-api"    % Version.slf4j
     val jclOverSlf4j: ModuleID = "org.slf4j"         % "jcl-over-slf4j" % Version.slf4j
     val log4jSlf4j: ModuleID  = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
@@ -125,8 +125,10 @@ lazy val library =
     val wokenMessages: ModuleID = "eu.humanbrainproject.mip" %% "woken-messages" % Version.wokenMessages
   }
 
-resolvers += "opendatagroup maven" at "http://repository.opendatagroup.com/maven"
 resolvers += "HBPMedical Bintray Repo" at "http://dl.bintray.com/hbpmedical/maven/"
+resolvers += "opendatagroup maven" at "http://repository.opendatagroup.com/maven"
+// For latest version of akka-kryo-serialization
+resolvers += "Seventh Sense" at "http://dl.bintray.com/7thsense/maven/"
 
 // *****************************************************************************
 // Settings
