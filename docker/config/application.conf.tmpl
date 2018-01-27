@@ -28,7 +28,6 @@ akka {
 
   actor {
     provider = "cluster"
-    enable-additional-serialization-bindings = on
 
     debug {
       receive = on
@@ -37,6 +36,16 @@ akka {
       fsm = on
       unhandled = on
       event-stream = off
+    }
+
+    serializers {
+      kryo = "com.twitter.chill.akka.AkkaSerializer"
+    }
+    enable-additional-serialization-bindings = on
+
+    serialization-bindings {
+      "scala.Product" = kryo
+      "java.io.Serializable" = kryo
     }
 
   }

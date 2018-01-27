@@ -52,7 +52,7 @@ ENTRYPOINT ["/run.sh"]
 # Health checks on http://host:8081/health
 # Akka on 8082
 # Spark UI on 4040
-EXPOSE 8081 8082 4040
+EXPOSE 8081 8082 8082/UDP 4040
 
 HEALTHCHECK CMD curl -v --silent http://localhost:8081/health 2>&1 | grep UP
 
