@@ -78,10 +78,10 @@ lazy val library =
       val akkaTracing    = "0.6.1"
       val akkaHttp       = "10.1.0-RC1"
       val sprayJson      = "1.3.4"
-      val slf4j          = "1.7.25"
-      val log4j          = "2.9.1"
-      val disruptor      = "3.3.7"
       val cats           = "1.0.1"
+      val slf4j          = "1.7.25"
+      val log4j          = "2.10.0"
+      val disruptor      = "3.3.7"
       val hadrian        = "0.8.5"
       // TODO: Spark can be upgraded, but there is some work here
       val spark          = "2.0.2"
