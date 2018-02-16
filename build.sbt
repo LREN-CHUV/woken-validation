@@ -75,8 +75,8 @@ lazy val library =
       val scalaCheck     = "1.13.5"
       val scalaTest      = "3.0.3"
       val akka           = "2.5.9"
+      val akkaHttp       = "10.1.0-RC2"
       val akkaTracing    = "0.6.1"
-      val akkaHttp       = "10.1.0-RC1"
       val sprayJson      = "1.3.4"
       val cats           = "1.0.1"
       val slf4j          = "1.7.25"
@@ -134,11 +134,11 @@ lazy val settings = commonSettings ++ gitSettings ++ scalafmtSettings
 lazy val commonSettings =
   Seq(
     scalaVersion := "2.11.11",
-    organization in ThisBuild := "eu.humanbrainproject.mip",
-    organizationName in ThisBuild := "Human Brain Project MIP by LREN CHUV",
+    organization in ThisBuild := "ch.chuv.lren.woken",
+    organizationName in ThisBuild := "LREN CHUV for Human Brain Project",
     homepage in ThisBuild := Some(url(s"https://github.com/HBPMedical/${name.value}/#readme")),
-    licenses in ThisBuild := Seq("Apache-2.0" ->
-      url(s"https://github.com/sbt/${name.value}/blob/${version.value}/LICENSE")),
+    licenses in ThisBuild := Seq("AGPL-3.0" ->
+      url(s"https://github.com/LREN-CHUV/${name.value}/blob/${version.value}/LICENSE")),
     startYear in ThisBuild := Some(2017),
     description in ThisBuild := "Cross validation module for Woken",
     developers in ThisBuild := List(
