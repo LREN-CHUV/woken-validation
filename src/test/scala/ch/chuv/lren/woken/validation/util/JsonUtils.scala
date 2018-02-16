@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.hbp.mip.woken.validation.util
+package ch.chuv.lren.woken.validation.util
 
 import spray.json.JsValue
 

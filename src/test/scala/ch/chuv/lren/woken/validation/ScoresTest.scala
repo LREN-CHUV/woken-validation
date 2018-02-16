@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package eu.hbp.mip.woken.validation
+package ch.chuv.lren.woken.validation
 
 import org.scalactic.{ Equality, TolerantNumerics }
 import org.scalatest.{ FlatSpec, Matchers }
 import cats.data.NonEmptyList
-import eu.hbp.mip.woken.validation.util.JsonUtils
+import ch.chuv.lren.woken.validation.util.JsonUtils
 
 class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 

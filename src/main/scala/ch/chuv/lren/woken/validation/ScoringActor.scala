@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.hbp.mip.woken.validation
+package ch.chuv.lren.woken.validation
 
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package eu.hbp.mip.woken.validation
+package ch.chuv.lren.woken.validation
 
 import akka.actor.{ ActorSystem, Props }
 import akka.testkit.{ ImplicitSender, TestKit }
 import ch.chuv.lren.woken.messages.validation.{ ValidationQuery, ValidationResult }
 import ch.chuv.lren.woken.messages.variables.{ VariableMetaData, VariableType }
-import eu.hbp.mip.woken.validation.util.JsonUtils
+import ch.chuv.lren.woken.validation.util.JsonUtils
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 import scala.concurrent.duration._

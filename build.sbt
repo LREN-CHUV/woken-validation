@@ -11,7 +11,7 @@ lazy val `woken-validation` =
     .settings(settings)
     .settings(
       Seq(
-        mainClass in Runtime := Some("eu.hbp.mip.woken.validation.Main"),
+        mainClass in Runtime := Some("Main"),
         libraryDependencies ++= Seq(
           library.akkaActor,
           library.akkaRemote,
