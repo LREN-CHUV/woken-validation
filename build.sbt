@@ -85,7 +85,7 @@ lazy val library =
       val hadrian        = "0.8.5"
       // TODO: Spark can be upgraded, but there is some work here
       val spark          = "2.0.2"
-      val wokenMessages  = "2.3.2"
+      val wokenMessages  = "2.4.1"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
@@ -119,7 +119,7 @@ lazy val library =
     // spark 2.2.x
     val sparkMllib: ModuleID  = "org.apache.spark"  %% "spark-mllib"  % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
     val sparkSql: ModuleID    = "org.apache.spark"  %% "spark-sql"    % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
-    val wokenMessages: ModuleID = "eu.humanbrainproject.mip" %% "woken-messages" % Version.wokenMessages
+    val wokenMessages: ModuleID = "ch.chuv.lren.woken" %% "woken-messages" % Version.wokenMessages
   }
 
 resolvers += "HBPMedical Bintray Repo" at "http://dl.bintray.com/hbpmedical/maven/"

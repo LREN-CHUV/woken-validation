@@ -20,7 +20,7 @@ import org.apache.spark.sql.{ Row, SparkSession }
 import org.apache.spark.mllib.evaluation.{ MulticlassMetrics, RegressionMetrics }
 import spray.json._
 import DefaultJsonProtocol._
-import eu.hbp.mip.woken.messages.variables.VariableMetaData
+import ch.chuv.lren.woken.messages.variables.VariableMetaData
 import cats.data.NonEmptyList
 
 import scala.util.Try
@@ -69,9 +69,9 @@ object Scoring {
 
   def apply(targetMetaVariable: VariableMetaData): Scoring =
     targetMetaVariable.`type` match {
-      case "binominal"   => BinaryClassificationScoring(enumerateLabel(targetMetaVariable))
-      case "polynominal" => PolynomialClassificationScoring(enumerateLabel(targetMetaVariable))
-      case _             => RegressionScoring()
+      case binominal   => BinaryClassificationScoring(enumerateLabel(targetMetaVariable))
+      case polynominal => PolynomialClassificationScoring(enumerateLabel(targetMetaVariable))
+      case _           => RegressionScoring()
     }
 
   type LabelScores = NonEmptyList[(String, Double)]

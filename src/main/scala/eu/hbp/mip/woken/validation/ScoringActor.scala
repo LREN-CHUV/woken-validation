@@ -22,7 +22,7 @@ import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import com.typesafe.config.Config
 //import com.github.levkhomich.akka.tracing.ActorTracing
-import eu.hbp.mip.woken.messages.validation.{ ScoringQuery, ScoringResult }
+import ch.chuv.lren.woken.messages.validation.{ ScoringQuery, ScoringResult }
 
 import scala.util.{ Failure, Success, Try }
 import scala.concurrent.duration._

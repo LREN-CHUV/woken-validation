@@ -22,7 +22,7 @@ import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import com.typesafe.config.Config
-import eu.hbp.mip.woken.messages.validation._
+import ch.chuv.lren.woken.messages.validation._
 
 //import com.github.levkhomich.akka.tracing.ActorTracing
 

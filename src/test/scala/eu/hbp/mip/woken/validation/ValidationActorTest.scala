@@ -18,8 +18,8 @@ package eu.hbp.mip.woken.validation
 
 import akka.actor.{ ActorSystem, Props }
 import akka.testkit.{ ImplicitSender, TestKit }
-import eu.hbp.mip.woken.messages.validation.{ ValidationQuery, ValidationResult }
-import eu.hbp.mip.woken.messages.variables.VariableMetaData
+import ch.chuv.lren.woken.messages.validation.{ ValidationQuery, ValidationResult }
+import ch.chuv.lren.woken.messages.variables.{ VariableMetaData, VariableType }
 import eu.hbp.mip.woken.validation.util.JsonUtils
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
@@ -52,7 +52,18 @@ class ValidationActorTest
         "Work",
         model,
         data,
-        VariableMetaData("", "", "", None, None, None, None, None, Set())
+        VariableMetaData("",
+                         "",
+                         VariableType.text,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         Set())
       )
       val ValidationResult(_, _, result: List[String], error) = receiveOne(60 seconds)
 
