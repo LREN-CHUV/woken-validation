@@ -1,11 +1,12 @@
 
 # Changelog
 
-## Next version
+## 2.2.0 - 2018-02-16
 
 * Docker image contains the configuration of the application. Environment variables can be used to tune the configuration
 * Add health checks on /health endpoint and a web server
-* __dev__: Update to Akka 2.5.8
+* __dev__: Migrate classes to package ch.chuv.lren.woken.validation.*
+* __dev__: Update to Akka 2.5.9
 
 ## 2.1.0 - 2017-12-11
 
