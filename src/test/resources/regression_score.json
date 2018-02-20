@@ -4,5 +4,5 @@
   "MSE": 188096.91975654333,
   "R-squared": -0.2352658303269044,
   "RMSE": 433.7014177479056,
-  "type": "RegressionScores"
+  "type": "RegressionScore"
 }

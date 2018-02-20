@@ -20,5 +20,5 @@
   "False positive rate": 0.5,
   "Precision": 0.6666666666666666,
   "Recall": 0.5,
-  "type": "BinaryClassificationScores"
+  "type": "BinaryClassificationScore"
 }

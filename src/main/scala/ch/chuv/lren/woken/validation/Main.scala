@@ -29,6 +29,7 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Try
 
+@SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
 object Main extends App {
 
   private val logger = LoggerFactory.getLogger("WokenValidation")

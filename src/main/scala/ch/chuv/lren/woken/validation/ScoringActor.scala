@@ -58,24 +58,22 @@ object ScoringActor {
 
 class ScoringActor extends Actor with ActorLogging /*with ActorTracing*/ {
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
     case ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
-      import ScoresProtocol._
-      import spray.json._
-
       log.info("Received scoring work!")
       val replyTo = sender()
 
-      val scores: Try[Scores] = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
+      val scores: Try[ScoreHolder] = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
 
       scores match {
         case Success(s) =>
           log.info("Scoring work complete")
-          replyTo ! ScoringResult(s.toJson.asJsObject)
+          replyTo ! ScoringResult(Right(s.toScore))
         case Failure(e) =>
           log.warning(e.toString)
-          replyTo ! ScoringResult(s"""{"error": "$e"}""".parseJson.asJsObject)
+          replyTo ! ScoringResult(Left(e.toString))
       }
 
     case e => log.error(s"Work not recognized by scoring actor: $e")

@@ -6,6 +6,7 @@ resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releas
 
 libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.25" // Needed by sbt-git
 libraryDependencies += "org.slf4j" % "slf4j-nop" % "1.7.25" // Needed by sbt-git
+
 // App Packaging
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
 

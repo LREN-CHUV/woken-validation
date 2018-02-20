@@ -26,6 +26,7 @@ import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import spray.json._
 
 class ValidationActorTest
     extends TestKit(ActorSystem("MySpec"))
@@ -44,13 +45,14 @@ class ValidationActorTest
 
       val model = loadJson("/models/simple_regression.json").asJsObject
 
-      val data   = List("{\"v1\": 1, \"v2\": 2}", "{\"v1\": 2, \"v2\": 3}", "{\"v1\": 1, \"v2\": 5}")
-      val labels = List("10.0", "20.0", "20.0")
+      val data = List("{\"v1\": 1, \"v2\": 2}", "{\"v1\": 2, \"v2\": 3}", "{\"v1\": 1, \"v2\": 5}")
+        .map(_.parseJson)
+      val labels = List("10.0", "20.0", "20.0").map(JsString.apply)
 
       val validationRef = system.actorOf(Props[ValidationActor])
 
       validationRef ! ValidationQuery(
-        "Work",
+        0,
         model,
         data,
         VariableMetaData("",
@@ -66,10 +68,9 @@ class ValidationActorTest
                          None,
                          Set())
       )
-      val ValidationResult(_, _, result: List[String], error) = receiveOne(60 seconds)
+      val ValidationResult(_, _, Right(result)) = receiveOne(60 seconds)
 
       result should contain theSameElementsInOrderAs labels
-      error shouldBe None
 
     }
   }

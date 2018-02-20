@@ -20,51 +20,46 @@ package ch.chuv.lren.woken.validation
 import org.scalactic.{ Equality, TolerantNumerics }
 import org.scalatest.{ FlatSpec, Matchers }
 import cats.data.NonEmptyList
+import ch.chuv.lren.woken.messages.validation._
 import ch.chuv.lren.woken.validation.util.JsonUtils
+import spray.json._
+import ch.chuv.lren.woken.messages.validation.validationProtocol._
 
 class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
   "BinaryClassificationScores " should "be correct" in {
 
-    import ScoresProtocol._
-    import spray.json._
     implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.001)
 
     val scoring = BinaryClassificationScoring(List("a", "b"))
 
-    val f = NonEmptyList.of(
-      "\"a\"",
-      "\"a\"",
-      "\"b\"",
-      "\"b\"",
-      "\"b\"",
-      "\"a\""
-    )
-    val y = NonEmptyList.of(
-      "\"a\"",
-      "\"b\"",
-      "\"a\"",
-      "\"b\"",
-      "\"a\"",
-      "\"a\""
-    )
+    val f = NonEmptyList.of("a", "a", "b", "b", "b", "a").map(JsString.apply)
+    val y = NonEmptyList.of("a", "b", "a", "b", "a", "a").map(JsString.apply)
 
     val scores = scoring.compute(f, y)
 
     scores.isSuccess shouldBe true
 
-    val json = scores.get.toJson
-
-    json.asJsObject.fields("Confusion matrix").compactPrint should equal(
-      "{\"labels\":[\"a\",\"b\"],\"values\":[[2.0,2.0],[1.0,1.0]]}"
+    val expected = BinaryClassificationScore(
+      `Confusion matrix` = Matrix(List("a", "b"), Array(Array(2.0, 2.0), Array(1.0, 1.0))),
+      `Accuracy` = 0.5,
+      `Precision` = 2 / 3.0,
+      `Recall` = 0.5,
+      `F1-score` = 0.5714285714285715,
+      `False positive rate` = 0.5
     )
-    json.asJsObject.fields("Accuracy").convertTo[Double] should equal(0.5)
-    json.asJsObject.fields("Precision").convertTo[Double] should equal(2 / 3.0)
-    json.asJsObject.fields("Recall").convertTo[Double] should equal(0.5)
-    json.asJsObject.fields("F1-score").convertTo[Double] should equal(0.5714)
-    json.asJsObject.fields("False positive rate").convertTo[Double] should equal(0.5)
 
-    assertResult(loadJson("/binary_classification.json"))(json)
+    val score = scores.get.toScore.asInstanceOf[BinaryClassificationScore]
+
+    score.`Confusion matrix` shouldBe expected.`Confusion matrix`
+    score.`Accuracy` shouldEqual expected.`Accuracy`
+    score.`Precision` shouldEqual expected.`Precision`
+    score.`Recall` shouldEqual expected.`Recall`
+    score.`F1-score` shouldEqual expected.`F1-score`
+    score.`False positive rate` shouldEqual expected.`False positive rate`
+
+    assertResult(loadJson("/binary_classification.json"))(score.asInstanceOf[VariableScore].toJson)
+
   }
 
   /*"BinaryClassificationThresholdScore " should "be correct" in {
@@ -108,108 +103,93 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
   "ClassificationScore " should "be correct" in {
 
-    import ScoresProtocol._
-    import spray.json._
     implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.001)
 
     val scoring = PolynomialClassificationScoring(List("a", "b", "c"))
 
-    val f = NonEmptyList.of(
-      "\"a\"",
-      "\"c\"",
-      "\"b\"",
-      "\"b\"",
-      "\"c\"",
-      "\"a\""
-    )
-    val y = NonEmptyList.of(
-      "\"a\"",
-      "\"c\"",
-      "\"a\"",
-      "\"b\"",
-      "\"a\"",
-      "\"b\""
-    )
+    val f = NonEmptyList.of("a", "c", "b", "b", "c", "a").map(JsString.apply)
+    val y = NonEmptyList.of("a", "c", "a", "b", "a", "b").map(JsString.apply)
 
     val scores = scoring.compute(f, y)
 
     scores.isSuccess shouldBe true
 
-    val json = scores.get.toJson
+    // `Weighted precision a:1/2 (3), b: 1/2 (2), c:1/2 (1)
+    // `Weighted recall    a:1/3 (3), b: 1/2 (2), c:1/1 (1)
+    // `Weigthed F1-score  a:2/5 (3), b: 1/2 (2), c:2/3 (1)
+    // `Weigthed false positive rate  a:1/3 (3), b: 1/4 (2), c:1/5 (1)
 
-    json.asJsObject.fields("Confusion matrix").compactPrint should equal(
-      "{\"labels\":[\"a\",\"b\",\"c\"],\"values\":[[1.0,1.0,1.0],[1.0,1.0,0.0],[0.0,0.0,1.0]]}"
+    val expected = PolynomialClassificationScore(
+      `Confusion matrix` =
+        Matrix(List("a", "b", "c"),
+               Array(Array(1.0, 1.0, 1.0), Array(1.0, 1.0, 0.0), Array(0.0, 0.0, 1.0))),
+      `Accuracy` = 0.5,
+      `Weighted precision` = 0.5,
+      `Weighted recall` = 0.5,
+      `Weighted F1-score` = 0.47777777777777775,
+      `Weighted false positive rate` = 0.2833333333333333
     )
-    json.asJsObject.fields("Accuracy").convertTo[Double] should equal(0.5)
-    json.asJsObject
-      .fields("Weighted Recall")
-      .convertTo[Double] should equal(0.5) // a:1/3 (3), b: 1/2 (2), c:1/1 (1)
-    json.asJsObject
-      .fields("Weighted Precision")
-      .convertTo[Double] should equal(0.5) // a:1/2 (3), b:1/2 (2), c:1/2 (1)
-    json.asJsObject
-      .fields("Weighted F1-score")
-      .convertTo[Double] should equal(0.47777) // a:2/5 (3), b:1/2 (2), c:2/3 (1)
-    json.asJsObject.fields("Weighted false positive rate").convertTo[Double] should equal(
-      0.2833
-    ) // a:1/3 (3), b:1/4 (2), c:1/5 (1)
 
-    assertResult(loadJson("/classification_score.json"))(json)
+    val score = scores.get.toScore
+
+    score shouldBe expected
+
+    assertResult(loadJson("/classification_score.json"))(score.toJson)
   }
 
   "RegressionScores " should "be correct" in {
 
-    import ScoresProtocol._
-    import spray.json._
     implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.01)
 
-    val scoring = RegressionScoring()
+    val scoring = RegressionScoring
 
-    val f = NonEmptyList.of("15.6", "0.0051", "23.5", "0.421", "1.2", "0.0325")
-    val y = NonEmptyList.of("123.56", "0.67", "1078.42", "64.2", "1.76", "1.23")
+    val f = NonEmptyList.of(15.6, 0.0051, 23.5, 0.421, 1.2, 0.0325).map(JsNumber.apply)
+    val y = NonEmptyList.of(123.56, 0.67, 1078.42, 64.2, 1.76, 1.23).map(JsNumber.apply)
 
     val scores = scoring.compute(f, y)
 
     scores.isSuccess shouldBe true
 
-    val json = scores.get.toJson
+    val expected = RegressionScore(
+      `MSE` = 188096.91975654333,
+      `MAE` = 204.8469,
+      `R-squared` = -0.2352658303269044,
+      `RMSE` = 433.7014177479056,
+      `Explained variance` = 42048.97761921002 // E(y) = 211.64, SSreg = 252293.8657
+    )
 
-    json.asJsObject.fields("R-squared").convertTo[Double] should equal(-0.2352)
-    json.asJsObject.fields("RMSE").convertTo[Double] should equal(433.7)
-    json.asJsObject.fields("MSE").convertTo[Double] should equal(188096.919)
-    json.asJsObject.fields("MAE").convertTo[Double] should equal(204.8469)
-    json.asJsObject
-      .fields("Explained variance")
-      .convertTo[Double] should equal(42048.9776) // E(y) = 211.64, SSreg = 252293.8657
+    val score = scores.get.toScore
 
-    assertResult(loadJson("/regression_score.json"))(json)
+    score shouldBe expected
+
+    assertResult(loadJson("/regression_score.json"))(score.toJson)
   }
 
   "RegressionScores 2" should "be correct" in {
 
-    import ScoresProtocol._
-    import spray.json._
     implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.01)
 
-    val scoring = RegressionScoring()
+    val scoring = RegressionScoring
 
-    val f = NonEmptyList.of("165.3", "1.65", "700.23", "66.7", "0.5", "2.3")
-    val y = NonEmptyList.of("123.56", "0.67", "1078.42", "64.2", "1.76", "1.23")
+    val f = NonEmptyList.of(165.3, 1.65, 700.23, 66.7, 0.5, 2.3).map(JsNumber.apply)
+    val y = NonEmptyList.of(123.56, 0.67, 1078.42, 64.2, 1.76, 1.23).map(JsNumber.apply)
 
     val scores = scoring.compute(f, y)
 
     scores.isSuccess shouldBe true
 
-    val json = scores.get.toJson
+    val expected = RegressionScore(
+      `MSE` = 24129.97443333334,
+      `MAE` = 70.95666666666668,
+      `R-squared` = 0.8415341785355228,
+      `RMSE` = 155.3382581122028,
+      `Explained variance` = 65729.05376666668 // E(y) = 211.64, SSreg = 394374.3226
+    )
 
-    json.asJsObject.fields("R-squared").convertTo[Double] should equal(0.84153)
-    json.asJsObject.fields("RMSE").convertTo[Double] should equal(155.34)
-    json.asJsObject.fields("MSE").convertTo[Double] should equal(24129.974)
-    json.asJsObject.fields("MAE").convertTo[Double] should equal(70.9566)
-    json.asJsObject
-      .fields("Explained variance")
-      .convertTo[Double] should equal(65729.0537) // E(y) = 211.64, SSreg = 394374.3226
+    val score = scores.get.toScore
 
-    assertResult(loadJson("/regression_score2.json"))(json)
+    score shouldBe expected
+
+    assertResult(loadJson("/regression_score2.json"))(score.toJson)
   }
 }

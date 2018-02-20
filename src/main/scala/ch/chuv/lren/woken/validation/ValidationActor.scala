@@ -30,6 +30,7 @@ import ch.chuv.lren.woken.messages.validation._
 import scala.util.Try
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import spray.json._
 
 object ValidationActor {
 
@@ -59,8 +60,12 @@ object ValidationActor {
 
 }
 
-class ValidationActor extends Actor with ActorLogging /*with ActorTracing*/ {
+class ValidationActor
+    extends Actor
+    with ActorLogging
+    with DefaultJsonProtocol /*with ActorTracing*/ {
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
     case ValidationQuery(fold, model, data, varInfo) =>
@@ -71,17 +76,17 @@ class ValidationActor extends Actor with ActorLogging /*with ActorTracing*/ {
 
         val engine = PFAEngine.fromJson(model.compactPrint).head
 
-        val inputData = engine.jsonInputIterator[AnyRef](data.iterator)
-        val outputData: List[String] =
-          inputData.map(x => { engine.jsonOutput(engine.action(x)) }).toList
-        log.info("Validation work for " + fold + " done!")
+        val inputData = engine.jsonInputIterator[AnyRef](data.map(_.compactPrint).iterator)
+        val outputData: List[JsValue] =
+          inputData.map(x => { engine.jsonOutput(engine.action(x)).toJson }).toList
+        log.info(s"Validation work for $fold done!")
 
-        replyTo ! ValidationResult(fold, varInfo, outputData, None)
+        replyTo ! ValidationResult(fold, varInfo, Right(outputData))
 
       }.recover {
         case e: Exception =>
           log.error(e, s"Error while validating model: $model")
-          replyTo ! ValidationResult(fold, varInfo, Nil, Some(e.toString))
+          replyTo ! ValidationResult(fold, varInfo, Left(e.toString))
       }
 
     case e => log.error(s"Work not recognized by validation actor: $e")
