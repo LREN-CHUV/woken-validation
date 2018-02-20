@@ -318,7 +318,8 @@ object RegressionScoring extends Scoring {
     val data: NonEmptyList[(Double, Double)] = algorithmOutput
       .zipWith(label)((_, _))
       .map {
-        case (y, f) => (y.convertTo[Double], f.convertTo[Double])
+        case (JsString(y), JsString(f)) => (y.toDouble, f.toDouble)
+        case (y, f)                     => (y.convertTo[Double], f.convertTo[Double])
       }
     val df = session.createDataFrame(data.toList).toDF("output", "label")
 
