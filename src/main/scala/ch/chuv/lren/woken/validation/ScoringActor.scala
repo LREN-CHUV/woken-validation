@@ -62,7 +62,7 @@ class ScoringActor extends Actor with ActorLogging /*with ActorTracing*/ {
   override def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
     case ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
-      log.info("Received scoring work!")
+      log.info(s"Received scoring work for variable ${targetMetaData.label} of type ${targetMetaData.`type`}")
       val replyTo = sender()
 
       val scores: Try[ScoreHolder] = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
@@ -72,7 +72,7 @@ class ScoringActor extends Actor with ActorLogging /*with ActorTracing*/ {
           log.info("Scoring work complete")
           replyTo ! ScoringResult(Right(s.toScore))
         case Failure(e) =>
-          log.warning(e.toString)
+          log.error(e, e.toString)
           replyTo ! ScoringResult(Left(e.toString))
       }
 

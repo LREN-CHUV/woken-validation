@@ -314,13 +314,15 @@ object RegressionScoring extends Scoring {
                        label: NonEmptyList[JsValue],
                        session: SparkSession): RegressionScoreHolder = {
 
+    def toDouble(v: JsValue): Double = v match {
+      case JsString(s) => s.toDouble
+      case n => n.convertTo[Double]
+    }
+
     // Convert to dataframe
     val data: NonEmptyList[(Double, Double)] = algorithmOutput
       .zipWith(label)((_, _))
-      .map {
-        case (JsString(y), JsString(f)) => (y.toDouble, f.toDouble)
-        case (y, f)                     => (y.convertTo[Double], f.convertTo[Double])
-      }
+      .map { case (y, f) => (toDouble(y), toDouble(f)) }
     val df = session.createDataFrame(data.toList).toDF("output", "label")
 
     val predictionAndLabels =
