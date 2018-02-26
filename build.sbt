@@ -26,6 +26,7 @@ lazy val `woken-validation` =
           library.jclOverSlf4j,
           library.log4jSlf4j,
           library.disruptor,
+          library.scalaLogging,
           library.catsCore,
           library.hadrian,
           library.sparkMllib,
@@ -82,6 +83,7 @@ lazy val library =
       val slf4j          = "1.7.25"
       val log4j          = "2.10.0"
       val disruptor      = "3.3.7"
+      val scalaLogging   = "3.7.2"
       val hadrian        = "0.8.5"
       // TODO: Spark can be upgraded, but there is some work here
       val spark          = "2.0.2"
@@ -114,6 +116,7 @@ lazy val library =
     val jclOverSlf4j: ModuleID = "org.slf4j"         % "jcl-over-slf4j" % Version.slf4j
     val log4jSlf4j: ModuleID  = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
     val disruptor: ModuleID   = "com.lmax"           % "disruptor"    % Version.disruptor
+    val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging" % Version.scalaLogging
     val catsCore: ModuleID    = "org.typelevel"     %% "cats-core"    % Version.cats
     val hadrian: ModuleID     = "com.opendatagroup" % "hadrian"       % Version.hadrian
     // spark 2.2.x
@@ -122,7 +125,7 @@ lazy val library =
     val wokenMessages: ModuleID = "ch.chuv.lren.woken" %% "woken-messages" % Version.wokenMessages
   }
 
-resolvers += "HBPMedical Bintray Repo" at "http://dl.bintray.com/hbpmedical/maven/"
+resolvers += "HBPMedical Bintray Repo" at "https://dl.bintray.com/hbpmedical/maven/"
 resolvers += "opendatagroup maven" at "http://repository.opendatagroup.com/maven"
 
 // *****************************************************************************

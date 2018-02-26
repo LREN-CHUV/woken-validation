@@ -17,13 +17,14 @@
 
 package ch.chuv.lren.woken.validation
 
-import org.apache.spark.sql.{ Row, SparkSession }
-import org.apache.spark.mllib.evaluation.{ MulticlassMetrics, RegressionMetrics }
+import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.mllib.evaluation.{MulticlassMetrics, RegressionMetrics}
 import spray.json._
 import DefaultJsonProtocol._
-import ch.chuv.lren.woken.messages.variables.{ VariableMetaData, VariableType }
+import ch.chuv.lren.woken.messages.variables.{VariableMetaData, VariableType}
 import cats.data.NonEmptyList
 import ch.chuv.lren.woken.messages.validation._
+import com.typesafe.scalalogging.LazyLogging
 
 import scala.util.Try
 
@@ -246,7 +247,7 @@ case class BinaryClassificationScoreHolder(override val metrics: MulticlassMetri
   )
 }
 
-trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring {
+trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring with LazyLogging {
 
   def enumeration: List[String]
 
@@ -255,6 +256,10 @@ trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring {
   override def compute(algorithmOutput: NonEmptyList[JsValue],
                        label: NonEmptyList[JsValue],
                        session: SparkSession): S = {
+
+    logger.info(s"Classification scoring with")
+    logger.info(s"Algorithm output: ${algorithmOutput.toList.mkString(",")}")
+    logger.info(s"Label: ${label.toList.mkString(",")}")
 
     // Convert to dataframe
     val data: NonEmptyList[(String, String)] = algorithmOutput
