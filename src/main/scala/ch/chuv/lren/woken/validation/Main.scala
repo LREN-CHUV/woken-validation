@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ Await, ExecutionContextExecutor }
 import scala.concurrent.duration._
+import scala.collection.JavaConversions._
 import scala.language.postfixOps
 import scala.util.Try
 
@@ -34,13 +35,16 @@ object Main extends App {
 
   private val logger = LoggerFactory.getLogger("WokenValidation")
 
-  val config: Config                                      = ConfigFactory.load()
-  private val clusterSystemName                           = config.getString("clustering.cluster.name")
+  val config: Config            = ConfigFactory.load()
+  private val clusterSystemName = config.getString("clustering.cluster.name")
+  private val seedNodes         = config.getStringList("akka.cluster.seed-nodes").toList
+
   implicit val system: ActorSystem                        = ActorSystem(clusterSystemName, config)
   implicit val materializer: ActorMaterializer            = ActorMaterializer()
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   logger.info(s"Step 1/3: Starting actor system $clusterSystemName...")
+  logger.info(s"Actor system should connect to cluster nodes ${seedNodes.mkString(",")}")
 
   lazy val cluster = Cluster(system)
 
