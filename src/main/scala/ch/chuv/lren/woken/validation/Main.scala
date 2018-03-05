@@ -87,7 +87,7 @@ object Main extends App {
             new Exception("Expected at least Woken + Woken validation server in the cluster")
           )
         else
-          complete("OK")
+          complete("UP")
       }
     }
 
@@ -96,7 +96,7 @@ object Main extends App {
         if (cluster.state.leader.isEmpty)
           failWith(new Exception("No leader elected for the cluster"))
         else
-          complete("OK")
+          complete("READY")
       }
     }
 
