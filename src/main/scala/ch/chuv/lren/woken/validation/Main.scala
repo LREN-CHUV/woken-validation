@@ -19,8 +19,10 @@ package ch.chuv.lren.woken.validation
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
+import akka.http.scaladsl.server.Directives.{ complete, failWith, get, pathPrefix }
 import akka.http.scaladsl.server.{ HttpApp, Route }
 import akka.stream.ActorMaterializer
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.slf4j.LoggerFactory
 
@@ -75,11 +77,30 @@ object Main extends App {
   }
 
   object HttpServer extends HttpApp {
-    override def routes: Route = pathPrefix("health") {
+    val healthRoute: Route = pathPrefix("health") {
       get {
-        complete("UP")
+        // TODO: proper health check is required, check db connection, check cluster availability...
+        if (cluster.state.leader.isEmpty)
+          failWith(new Exception("No leader elected for the cluster"))
+        else if (cluster.state.members.size < 2)
+          failWith(
+            new Exception("Expected at least Woken + Woken validation server in the cluster")
+          )
+        else
+          complete("OK")
       }
     }
+
+    val readinessRoute: Route = pathPrefix("readiness") {
+      get {
+        if (cluster.state.leader.isEmpty)
+          failWith(new Exception("No leader elected for the cluster"))
+        else
+          complete("OK")
+      }
+    }
+
+    override def routes: Route = cors()(healthRoute ~ readinessRoute)
 
   }
 

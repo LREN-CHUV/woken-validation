@@ -17,11 +17,11 @@
 
 package ch.chuv.lren.woken.validation
 
-import org.apache.spark.sql.{Row, SparkSession}
-import org.apache.spark.mllib.evaluation.{MulticlassMetrics, RegressionMetrics}
+import org.apache.spark.sql.{ Row, SparkSession }
+import org.apache.spark.mllib.evaluation.{ MulticlassMetrics, RegressionMetrics }
 import spray.json._
 import DefaultJsonProtocol._
-import ch.chuv.lren.woken.messages.variables.{VariableMetaData, VariableType}
+import ch.chuv.lren.woken.messages.variables.{ VariableMetaData, VariableType }
 import cats.data.NonEmptyList
 import ch.chuv.lren.woken.messages.validation._
 import com.typesafe.scalalogging.LazyLogging
@@ -321,7 +321,7 @@ object RegressionScoring extends Scoring {
 
     def toDouble(v: JsValue): Double = v match {
       case JsString(s) => s.toDouble
-      case n => n.convertTo[Double]
+      case n           => n.convertTo[Double]
     }
 
     // Convert to dataframe
