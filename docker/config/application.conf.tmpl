@@ -30,6 +30,7 @@ akka {
   }
 
   extensions += "akka.cluster.pubsub.DistributedPubSub"
+  extensions += "akka.cluster.client.ClusterClientReceptionist"
 
   cluster {
     seed-nodes = [
