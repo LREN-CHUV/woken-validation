@@ -1,4 +1,5 @@
 import sbt.ExclusionRule
+import sbtassembly.MergeStrategy
 
 // *****************************************************************************
 // Projects
@@ -36,33 +37,11 @@ lazy val `woken-validation` =
           library.scalaTest    % Test,
           library.akkaTestkit  % Test
         ),
-        includeFilter in (Compile, unmanagedResources) := "*.xml",
+        includeFilter in (Compile, unmanagedResources) := "*.xml" || "*.conf",
         includeFilter in (Test, unmanagedResources) := "*.json",
-        assemblyJarName in assembly := "woken-validation-all.jar",
-        assemblyMergeStrategy in assembly := {
-          case PathList("io", "hydrosphere", xs @ _*) => MergeStrategy.first
-          case PathList("org","aopalliance", xs @ _*) => MergeStrategy.last
-          case PathList("javax", "inject", xs @ _*) => MergeStrategy.last
-          case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
-          case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
-          case PathList("org", "apache", xs @ _*) => MergeStrategy.last
-          case PathList("org", "apache", "spark", "unused", xs @ _*) => MergeStrategy.first
-          case PathList("com", "google", xs @ _*) => MergeStrategy.last
-          case PathList("com", "esotericsoftware", xs @ _*) => MergeStrategy.last
-          case PathList("com", "codahale", xs @ _*) => MergeStrategy.last
-          case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
-          case "about.html" => MergeStrategy.discard
-          case "overview.html" => MergeStrategy.discard
-          case "parquet.thrift" => MergeStrategy.last
-          case "META-INF/ECLIPSEF.RSA" => MergeStrategy.discard
-          case "META-INF/mailcap" => MergeStrategy.last
-          case "META-INF/mimetypes.default" => MergeStrategy.last
-          case "plugin.properties" => MergeStrategy.last
-          case "log4j.properties" => MergeStrategy.last
-          case x =>
-            val oldStrategy = (assemblyMergeStrategy in assembly).value
-            oldStrategy(x)
-        }
+        // Use the customMergeStrategy in your settings
+        assemblyMergeStrategy in assembly := customMergeStrategy,
+        assemblyJarName in assembly := "woken-validation-all.jar"
       )
     )
 
@@ -186,3 +165,51 @@ lazy val scalafmtSettings =
     scalafmtOnCompile.in(Sbt) := false,
     scalafmtVersion := "1.4.0"
   )
+
+        assemblyMergeStrategy in assembly := {
+          case PathList("io", "hydrosphere", xs @ _*) => MergeStrategy.first
+          case PathList("org","aopalliance", xs @ _*) => MergeStrategy.last
+          case PathList("javax", "inject", xs @ _*) => MergeStrategy.last
+          case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
+          case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
+          case PathList("org", "apache", xs @ _*) => MergeStrategy.last
+          case PathList("org", "apache", "spark", "unused", xs @ _*) => MergeStrategy.first
+          case PathList("com", "google", xs @ _*) => MergeStrategy.last
+          case PathList("com", "esotericsoftware", xs @ _*) => MergeStrategy.last
+          case PathList("com", "codahale", xs @ _*) => MergeStrategy.last
+          case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
+          case "about.html" => MergeStrategy.discard
+          case "overview.html" => MergeStrategy.discard
+          case "parquet.thrift" => MergeStrategy.last
+          case "META-INF/ECLIPSEF.RSA" => MergeStrategy.discard
+          case "META-INF/mailcap" => MergeStrategy.last
+          case "META-INF/mimetypes.default" => MergeStrategy.last
+          case "plugin.properties" => MergeStrategy.last
+          case "log4j.properties" => MergeStrategy.last
+          case x =>
+            val oldStrategy = (assemblyMergeStrategy in assembly).value
+            oldStrategy(x)
+        }
+
+val customMergeStrategy: String => MergeStrategy = {
+  case PathList("io", "hydrosphere", xs @ _*) => MergeStrategy.first
+  case PathList("org","aopalliance", xs @ _*) => MergeStrategy.last
+  case PathList("javax", "inject", xs @ _*) => MergeStrategy.last
+  case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
+  case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
+  case PathList("org", "apache", xs @ _*) => MergeStrategy.last
+  case PathList("org", "apache", "spark", "unused", xs @ _*) => MergeStrategy.first
+  case PathList("com", "google", xs @ _*) => MergeStrategy.last
+  case PathList("com", "esotericsoftware", xs @ _*) => MergeStrategy.last
+  case PathList("com", "codahale", xs @ _*) => MergeStrategy.last
+  case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
+  case "about.html" => MergeStrategy.discard
+  case "overview.html" => MergeStrategy.discard
+  case "parquet.thrift" => MergeStrategy.last
+  case "META-INF/ECLIPSEF.RSA" => MergeStrategy.discard
+  case "META-INF/mailcap" => MergeStrategy.last
+  case "META-INF/mimetypes.default" => MergeStrategy.last
+  case "plugin.properties" => MergeStrategy.last
+  case "log4j.properties" => MergeStrategy.last
+  case s => MergeStrategy.defaultMergeStrategy(s)
+}

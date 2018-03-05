@@ -37,7 +37,7 @@ object Main extends App {
 
   private val logger = LoggerFactory.getLogger("WokenValidation")
 
-  val config: Config            = ConfigFactory.load()
+  val config: Config            = ConfigFactory.load("application.conf")
   private val clusterSystemName = config.getString("clustering.cluster.name")
   private val seedNodes         = config.getStringList("akka.cluster.seed-nodes").toList
 
