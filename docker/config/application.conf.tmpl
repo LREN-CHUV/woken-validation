@@ -1,55 +1,11 @@
 akka {
   loglevel = {{ default .Env.LOG_LEVEL "WARNING" }}
   stdout-loglevel = {{ default .Env.LOG_LEVEL "WARNING" }}
-  loggers = ["akka.event.slf4j.Slf4jLogger"]
-  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"
-
-  log-dead-letters = 10
-
-{{ if .Env.AKKA_TRACING }}
-  # a nice way to prevent cold start of extension is to define it to be loaded on actor system start
-  extensions += "com.github.levkhomich.akka.tracing.TracingExtension"
-
-  tracing {
-    # use this option to disable tracing
-    enabled = off
-
-    # zipkin collector or scribe host name
-    host = "zipkin"
-
-    # collector's port
-    #    port = 9410 # default, can be omitted
-
-    # every n'th message should be traced
-    # for example, 1 means that every message would be traced, 2 - half of messages, 4 - a fourth part, etc.
-    sample-rate = 1
-  }
-{{ end }}
-
-  actor {
-    provider = "cluster"
-
-    debug {
-      receive = on
-      autoreceive = off
-      lifecycle = on
-      fsm = on
-      unhandled = on
-      event-stream = off
-    }
-
-    enable-additional-serialization-bindings = off
-    allow-java-serialization = on
-    warn-about-java-serializer-usage = on
-
-  }
 
   remote {
     log-sent-messages = on
     log-received-messages = on
     log-remote-lifecycle-events = off
-
-    maximum-payload-bytes = 10000000 bytes
 
 {{ if .Env.UDP_ARTERY }}
     artery {
@@ -67,8 +23,8 @@ akka {
       hostname = ${clustering.ip} # external (logical) hostname
       port = ${clustering.port}   # external (logical) port
 
-      bind.hostname = 0.0.0.0         # internal (bind) hostname
-      bind.port = ${clustering.port}  # internal (bind) port
+      bind-hostname = 0.0.0.0         # internal (bind) hostname
+      bind-port = ${clustering.port}  # internal (bind) port
     }
 {{ end }}
   }
@@ -83,55 +39,4 @@ akka {
     roles = ["validation", "scoring"]
 
   }
-}
-
-akka.http {
-  server {
-    idle-timeout = 300s
-    request-timeout = 180s
-    ssl-encryption = off
-    ssl-tracing = on
-  }
-}
-
-clustering {
-  ip = "127.0.0.1"
-  ip = ${?CLUSTER_IP}
-  port = 8082
-  port = ${?CLUSTER_PORT}
-  seed-ip = "127.0.0.1"
-  seed-ip = ${?CLUSTER_IP}
-  seed-ip = ${?WOKEN_PORT_8088_TCP_ADDR}
-  seed-port = 8088
-  seed-port = ${?WOKEN_PORT_8088_TCP_PORT}
-  cluster.name = "woken"
-  cluster.name = ${?CLUSTER_NAME}
-}
-
-validation.resizer {
-  enabled = on
-  # The fewest number of routees the router should ever have.
-  lower-bound = 1
-  # The most number of routees the router should ever have.
-  # Must be greater than or equal to lower-bound.
-  upper-bound = 10
-  action-interval = 5s
-  downsize-after-underutilized-for = 72h
-}
-
-scoring.resizer {
-  enabled = on
-  lower-bound = 1
-  # The most number of routees the router should ever have.
-  # Must be greater than or equal to lower-bound.
-  upper-bound = 10
-  action-interval = 5s
-  downsize-after-underutilized-for = 72h
-}
-
-http {
-  networkInterface = "0.0.0.0"
-  networkInterface = ${?HTTP_LISTEN_INTERFACE}
-  port = 8081
-  port = ${?HTTP_PORT}
 }

@@ -24,7 +24,6 @@ where the environment variables are:
 * WOKEN_PORT_8088_TCP_ADDR: Address of Woken master server
 * WOKEN_PORT_8088_TCP_PORT: Port of Woken master server, default to 8088
 * LOG_LEVEL: Level for logs on standard output, default to WARNING
-* AKKA_TRACING: if set to true, enables Akka tracing (experimental, not working yet)
 * UDP_ARTERY: if set to true, enables UDP and Akka Artery for communication (experimental, not working yet)
 
 ## How to build
