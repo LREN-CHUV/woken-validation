@@ -66,6 +66,7 @@ class ValidationActorTest
                          None,
                          None,
                          None,
+                         None,
                          Set())
       )
       val ValidationResult(_, _, Right(result)) = receiveOne(60 seconds)

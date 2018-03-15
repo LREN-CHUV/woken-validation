@@ -65,7 +65,7 @@ class ValidationActor
     with ActorLogging
     with DefaultJsonProtocol /*with ActorTracing*/ {
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  @SuppressWarnings(Array("org.wartremover.warts.Any", "org.wartremover.warts.TraversableOps"))
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
     case ValidationQuery(fold, model, data, varInfo) =>
