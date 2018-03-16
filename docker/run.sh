@@ -2,4 +2,4 @@
 
 cd /opt/woken-validation
 
-java -jar woken-validation.jar
+java ${JAVA_OPTIONS} -jar woken-validation.jar
