@@ -75,4 +75,44 @@ class ValidationActorTest
 
     }
   }
+
+  "A k-NN model" should {
+    "validate" in {
+
+      val model = loadJson("/models/knn.json").asJsObject
+
+      val data = List("{\"score_test1\": 1, \"college_math\": 2}",
+                      "{\"score_test1\": 2, \"college_math\": 3}",
+                      "{\"score_test1\": 1, \"college_math\": 5}")
+        .map(_.parseJson)
+      val labels = List("10.0", "20.0", "20.0").map(JsString.apply)
+
+      val validationRef = system.actorOf(Props[ValidationActor])
+
+      validationRef ! ValidationQuery(
+        0,
+        model,
+        data,
+        VariableMetaData("",
+                         "",
+                         VariableType.text,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         Set())
+      )
+      val ValidationResult(_, _, Right(result)) = receiveOne(60 seconds)
+
+      println(result)
+
+      result should contain theSameElementsInOrderAs labels
+
+    }
+  }
 }
