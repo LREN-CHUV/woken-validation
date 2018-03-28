@@ -7,7 +7,7 @@ import sys
 import os
 
 from titus.genpy import PFAEngine
-from titus.datatype import AvroRecord
+from titus.datatype import AvroRecord, AvroString
 from titus.errors import *
 
 def load_document(file):
@@ -73,7 +73,7 @@ def main(pfa_file, data_file, results_file):
 
     engine = get_engine(load_document(pfa_file))
     data = json.loads(load_document(data_file))
-    string_output = isinstance(engine.config.output, str) or isinstance(engine.config.output, unicode)
+    string_output = isinstance(engine.config.output, AvroString)
 
     with open(results_file,"w") as results:
         results.write("[")
