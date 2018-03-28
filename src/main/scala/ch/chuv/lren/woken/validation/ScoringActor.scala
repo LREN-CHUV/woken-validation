@@ -22,7 +22,6 @@ import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import com.typesafe.config.Config
-//import com.github.levkhomich.akka.tracing.ActorTracing
 import ch.chuv.lren.woken.messages.validation.{ ScoringQuery, ScoringResult }
 
 import scala.util.{ Failure, Success, Try }

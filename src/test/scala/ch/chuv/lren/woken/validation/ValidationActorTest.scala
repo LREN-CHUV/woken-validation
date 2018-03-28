@@ -81,11 +81,12 @@ class ValidationActorTest
 
       val model = loadJson("/models/knn.json").asJsObject
 
-      val data = List("{\"score_test1\": 1, \"college_math\": 2}",
-                      "{\"score_test1\": 2, \"college_math\": 3}",
-                      "{\"score_test1\": 1, \"college_math\": 5}")
-        .map(_.parseJson)
-      val labels = List("10.0", "20.0", "20.0").map(JsString.apply)
+      val data = List(
+        "{\"subjectageyears\": 62, \"rightsogsuperioroccipitalgyrus\": 2.4}",
+        "{\"subjectageyears\": 75, \"rightsogsuperioroccipitalgyrus\": 3.3}",
+        "{\"subjectageyears\": 82, \"rightsogsuperioroccipitalgyrus\": 1.5}"
+      ).map(_.parseJson)
+      val labels = List(25.6, 22.2, 22.6).map(JsNumber.apply)
 
       val validationRef = system.actorOf(Props[ValidationActor])
 

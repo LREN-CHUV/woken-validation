@@ -63,7 +63,7 @@ lazy val library =
       val log4j          = "2.10.0"
       val disruptor      = "3.3.7"
       val scalaLogging   = "3.7.2"
-      val hadrian        = "0.8.5"
+      val hadrian        = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
       val spark          = "2.0.2"
       val wokenMessages = "2.6.4"
