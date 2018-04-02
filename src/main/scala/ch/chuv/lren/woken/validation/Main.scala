@@ -37,7 +37,26 @@ object Main extends App {
 
   private val logger = LoggerFactory.getLogger("WokenValidation")
 
-  val config: Config            = ConfigFactory.load("application.conf")
+  // Order of loading:
+  // 1. Akka configuration hard-coded for clustering (present here to avoid clashes with tests no using a cluster)
+  // 2. Configuration of Akka pre-defined in akka.conf, configurable by environment variables
+  // 3. Configuration of Kamon pre-defined in kamon.conf, configurable by environment variables
+  // 4. Custom configuration defined in application.conf and backed by reference.conf from the libraries
+  //    for algorithms can be overriden by environment variables
+  lazy val config: Config =
+    ConfigFactory
+      .parseString("""
+        |akka {
+        |  actor.provider = cluster
+        |  extensions += "akka.cluster.pubsub.DistributedPubSub"
+        |  extensions += "akka.cluster.client.ClusterClientReceptionist"
+        |}
+      """.stripMargin)
+      .withFallback(ConfigFactory.parseResourcesAnySyntax("akka.conf"))
+      .withFallback(ConfigFactory.parseResourcesAnySyntax("kamon.conf"))
+      .withFallback(ConfigFactory.load())
+      .resolve()
+
   private val clusterSystemName = config.getString("clustering.cluster.name")
   private val seedNodes         = config.getStringList("akka.cluster.seed-nodes").toList
 
