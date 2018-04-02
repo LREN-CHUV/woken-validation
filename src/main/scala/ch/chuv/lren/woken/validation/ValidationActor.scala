@@ -68,6 +68,8 @@ class ValidationActor
     with ActorLogging
     with DefaultJsonProtocol /*with ActorTracing*/ {
 
+  private val complexModels = Set("kNN", "naive_bayes", "neural_network", "linear_model")
+
   @SuppressWarnings(Array("org.wartremover.warts.Any", "org.wartremover.warts.TraversableOps"))
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
@@ -79,7 +81,8 @@ class ValidationActor
 
         val modelNameO = model.fields.get("name").map(_.convertTo[String])
         modelNameO match {
-          case Some(modelName) if modelName == "kNN" || modelName == "NaiveBayes" =>
+          case Some(modelName) if complexModels.contains(modelName) =>
+            log.info(s"Validing model $modelName using Titus")
             val modelFile = File.createTempFile(modelName, "-pfa")
             modelFile.deleteOnExit()
             val modelFileWriter = new PrintWriter(modelFile)
