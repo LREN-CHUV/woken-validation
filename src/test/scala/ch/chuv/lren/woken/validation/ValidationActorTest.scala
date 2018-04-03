@@ -116,4 +116,45 @@ class ValidationActorTest
 
     }
   }
+
+  "A Naive Bayes model" should {
+    "validate" in {
+
+      val model = loadJson("/models/naive_bayes.json").asJsObject
+
+      val data = List(
+        "{\"subjectage\": 62, \"leftcuncuneus\": 2.4}",
+        "{\"subjectage\": 75, \"leftcuncuneus\": 3.3}",
+        "{\"subjectage\": 82, \"leftcuncuneus\": 1.5}"
+      ).map(_.parseJson)
+      val labels = List("AD", "AD", "AD").map(JsString.apply)
+
+      val validationRef = system.actorOf(Props[ValidationActor])
+
+      validationRef ! ValidationQuery(
+        0,
+        model,
+        data,
+        VariableMetaData("",
+                         "",
+                         VariableType.text,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         Set())
+      )
+      val ValidationResult(_, _, Right(result)) = receiveOne(60 seconds)
+
+      println(result)
+
+      result should contain theSameElementsInOrderAs labels
+
+    }
+  }
 }
