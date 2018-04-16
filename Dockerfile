@@ -45,8 +45,8 @@ COPY docker/run.sh /
 RUN adduser -H -D -u 1000 woken \
     && apk add --update --no-cache curl
 
-RUN apk add --update --no-cache python2 py2-pip \
-    && pip2 install titus
+RUN apk add --update --no-cache python2 python2-dev gfortran build-base py2-pip \
+    && pip2 install numpy titus
 
 COPY src/main/python/pfa_eval.py /pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
