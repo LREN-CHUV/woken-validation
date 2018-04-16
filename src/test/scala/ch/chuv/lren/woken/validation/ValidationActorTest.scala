@@ -66,9 +66,92 @@ class ValidationActorTest
                          None,
                          None,
                          None,
+                         None,
                          Set())
       )
       val ValidationResult(_, _, Right(result)) = receiveOne(60 seconds)
+
+      result should contain theSameElementsInOrderAs labels
+
+    }
+  }
+
+  "A k-NN model" should {
+    "validate" in {
+
+      val model = loadJson("/models/knn.json").asJsObject
+
+      val data = List(
+        "{\"subjectageyears\": 62, \"rightsogsuperioroccipitalgyrus\": 2.4}",
+        "{\"subjectageyears\": 75, \"rightsogsuperioroccipitalgyrus\": 3.3}",
+        "{\"subjectageyears\": 82, \"rightsogsuperioroccipitalgyrus\": 1.5}"
+      ).map(_.parseJson)
+      val labels = List(25.6, 22.2, 22.6).map(JsNumber.apply)
+
+      val validationRef = system.actorOf(Props[ValidationActor])
+
+      validationRef ! ValidationQuery(
+        0,
+        model,
+        data,
+        VariableMetaData("",
+                         "",
+                         VariableType.text,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         Set())
+      )
+      val ValidationResult(_, _, Right(result)) = receiveOne(60 seconds)
+
+      println(result)
+
+      result should contain theSameElementsInOrderAs labels
+
+    }
+  }
+
+  "A Naive Bayes model" should {
+    "validate" in {
+
+      val model = loadJson("/models/naive_bayes.json").asJsObject
+
+      val data = List(
+        "{\"subjectage\": 62, \"leftcuncuneus\": 2.4}",
+        "{\"subjectage\": 75, \"leftcuncuneus\": 3.3}",
+        "{\"subjectage\": 82, \"leftcuncuneus\": 1.5}"
+      ).map(_.parseJson)
+      val labels = List("AD", "AD", "AD").map(JsString.apply)
+
+      val validationRef = system.actorOf(Props[ValidationActor])
+
+      validationRef ! ValidationQuery(
+        0,
+        model,
+        data,
+        VariableMetaData("",
+                         "",
+                         VariableType.text,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         Set())
+      )
+      val ValidationResult(_, _, Right(result)) = receiveOne(60 seconds)
+
+      println(result)
 
       result should contain theSameElementsInOrderAs labels
 

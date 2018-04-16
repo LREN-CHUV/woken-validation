@@ -17,6 +17,8 @@
 
 package ch.chuv.lren.woken.validation
 
+import java.io.{ File, PrintWriter }
+
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
@@ -25,12 +27,13 @@ import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import com.typesafe.config.Config
 import ch.chuv.lren.woken.messages.validation._
 
-//import com.github.levkhomich.akka.tracing.ActorTracing
+import scala.io.Source
 
 import scala.util.Try
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import spray.json._
+import scala.sys.process._
 
 object ValidationActor {
 
@@ -65,7 +68,9 @@ class ValidationActor
     with ActorLogging
     with DefaultJsonProtocol /*with ActorTracing*/ {
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  private val complexModels = Set("kNN", "naive_bayes", "neural_network", "linear_model")
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any", "org.wartremover.warts.TraversableOps"))
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
     case ValidationQuery(fold, model, data, varInfo) =>
@@ -74,18 +79,72 @@ class ValidationActor
       val replyTo = sender()
       Try {
 
-        val engine = PFAEngine.fromJson(model.compactPrint).head
+        val modelNameO = model.fields.get("name").map(_.convertTo[String])
+        modelNameO match {
+          case Some(modelName) if complexModels.contains(modelName) =>
+            log.info(s"Validing model $modelName using Titus")
+            val modelFile = File.createTempFile(modelName, "-pfa")
+            modelFile.deleteOnExit()
+            val modelFileWriter = new PrintWriter(modelFile)
+            modelFileWriter.write(model.compactPrint)
+            modelFileWriter.close()
 
-        val inputData = engine.jsonInputIterator[AnyRef](data.map(_.compactPrint).iterator)
-        val outputData: List[JsValue] =
-          inputData.map(x => { engine.jsonOutput(engine.action(x)).toJson }).toList
-        log.info(s"Validation work for $fold done!")
+            val dataFile = File.createTempFile(modelName, "-data")
+            dataFile.deleteOnExit()
+            val dataFileWriter = new PrintWriter(dataFile)
+            dataFileWriter.write(JsArray(data.toVector).compactPrint)
+            dataFileWriter.close()
 
-        replyTo ! ValidationResult(fold, varInfo, Right(outputData))
+            val resultsFile = File.createTempFile(modelName, "-results")
+            resultsFile.deleteOnExit()
+
+            val processOutputFile = File.createTempFile(modelName, "-out")
+            processOutputFile.deleteOnExit()
+
+            val pfaEvalScript =
+              if (new File("/pfa_eval.py").exists()) "/pfa_eval.py"
+              else "src/main/python/pfa_eval.py"
+            val cmd = Seq(pfaEvalScript,
+                          modelFile.toPath.toString,
+                          dataFile.toPath.toString,
+                          resultsFile.toPath.toString)
+            val process  = Process(cmd).run(new FileProcessLogger(processOutputFile))
+            val exitCode = process.exitValue()
+
+            if (exitCode == 0) {
+              val results =
+                Source.fromFile(resultsFile).getLines().mkString.parseJson.asInstanceOf[JsArray]
+              replyTo ! ValidationResult(fold, varInfo, Right(results.elements.toList))
+            } else {
+              val msg = Source.fromFile(processOutputFile).getLines().mkString
+              log.error(s"Error while validating model: $msg \nModel was: \n$model")
+              replyTo ! ValidationResult(fold, varInfo, Left(msg))
+            }
+
+            modelFile.delete()
+            dataFile.delete()
+            resultsFile.delete()
+            processOutputFile.delete()
+
+          case _ =>
+            val json   = model.compactPrint
+            val engine = PFAEngine.fromJson(json).head
+
+            val inputData = engine.jsonInputIterator[AnyRef](data.map(_.compactPrint).iterator)
+            val outputData: List[JsValue] =
+              inputData
+                .map(x => {
+                  engine.jsonOutput(engine.action(x)).toJson
+                })
+                .toList
+            log.info(s"Validation work for $fold done!")
+
+            replyTo ! ValidationResult(fold, varInfo, Right(outputData))
+        }
 
       }.recover {
         case e: Exception =>
-          log.error(e, s"Error while validating model: $model")
+          log.error(e, s"Error $e while validating model: $model")
           replyTo ! ValidationResult(fold, varInfo, Left(e.toString))
       }
 

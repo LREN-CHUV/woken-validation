@@ -28,7 +28,6 @@ trait JsonUtils {
     import spray.json.DefaultJsonProtocol.RootJsObjectFormat
 
     val source = Source.fromURL(getClass.getResource(path))
-    jsonReader
     source.mkString.parseJson
   }
 }

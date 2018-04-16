@@ -8,13 +8,18 @@ ARG BINTRAY_PASS
 ENV BINTRAY_USER=$BINTRAY_USER \
     BINTRAY_PASS=$BINTRAY_PASS
 
+RUN apk add --update --no-cache python2 py2-pip \
+    && pip2 install titus
+
+COPY src/main/python/pfa_eval.py /pfa_eval.py
+
 # First caching layer: build.sbt and sbt configuration
 COPY build.sbt /build/
 RUN  mkdir -p /build/project/
 COPY project/build.properties project/plugins.sbt project/.gitignore /build/project/
 
 # Run sbt on an empty project and force it to download most of its dependencies to fill the cache
-RUN sbt compile
+RUN sbt -mem 1500 compile
 
 # Second caching layer: project sources
 COPY src/ /build/src/
@@ -25,7 +30,7 @@ COPY .*.cfg .*ignore .*.yaml .*.conf *.md *.sh *.yml *.json Dockerfile LICENSE /
 
 RUN /check-sources.sh
 
-RUN sbt test assembly
+RUN sbt -mem 1500 test assembly
 
 FROM hbpmip/java-base:8u151-1
 
@@ -40,6 +45,10 @@ COPY docker/run.sh /
 RUN adduser -H -D -u 1000 woken \
     && apk add --update --no-cache curl
 
+RUN apk add --update --no-cache python2 py2-pip \
+    && pip2 install titus
+
+COPY src/main/python/pfa_eval.py /pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
 
 USER woken
