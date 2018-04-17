@@ -53,20 +53,20 @@ lazy val library =
   new {
     object Version {
       val scalaCheck     = "1.13.5"
-      val scalaTest      = "3.0.3"
-      val akka           = "2.5.11"
+      val scalaTest      = "3.0.5"
+      val akka           = "2.5.12"
       val akkaHttp       = "10.1.1"
-      val akkaHttpCors    = "0.2.1"
+      val akkaHttpCors   = "0.3.0"
       val sprayJson      = "1.3.4"
-      val cats           = "1.0.1"
+      val cats           = "1.1.0"
       val slf4j          = "1.7.25"
-      val log4j          = "2.10.0"
-      val disruptor      = "3.3.7"
-      val scalaLogging   = "3.7.2"
+      val log4j          = "2.11.0"
+      val disruptor      = "3.4.2"
+      val scalaLogging   = "3.9.0"
       val hadrian        = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
       val spark          = "2.0.2"
-      val wokenMessages = "2.6.5"
+      val wokenMessages  = "2.6.6"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")

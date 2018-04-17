@@ -1,6 +1,6 @@
 # Verified with http://hadolint.lukasmartinelli.ch/
 
-FROM hbpmip/scala-base-build:1.1.0-1 as scala-build-env
+FROM hbpmip/scala-base-build:1.1.0-2 as scala-build-env
 
 ARG BINTRAY_USER
 ARG BINTRAY_PASS
