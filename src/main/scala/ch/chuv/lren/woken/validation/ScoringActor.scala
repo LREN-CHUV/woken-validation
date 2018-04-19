@@ -18,7 +18,7 @@
 package ch.chuv.lren.woken.validation
 
 import akka.actor.SupervisorStrategy.Restart
-import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
+import akka.actor.{ Actor, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import com.typesafe.config.Config
@@ -58,13 +58,13 @@ object ScoringActor extends LazyLogging {
 
 }
 
-class ScoringActor extends Actor with ActorLogging /*with ActorTracing*/ {
+class ScoringActor extends Actor with LazyLogging /*with ActorTracing*/ {
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
     case ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
-      log.info(
+      logger.info(
         s"Received scoring work for variable ${targetMetaData.label} of type ${targetMetaData.`type`}"
       )
       val replyTo = sender()
@@ -73,14 +73,14 @@ class ScoringActor extends Actor with ActorLogging /*with ActorTracing*/ {
 
       scores match {
         case Success(s) =>
-          log.info("Scoring work complete")
+          logger.info("Scoring work complete")
           replyTo ! ScoringResult(Right(s.toScore))
         case Failure(e) =>
-          log.error(e, e.toString)
+          logger.error(e.toString, e)
           replyTo ! ScoringResult(Left(e.toString))
       }
 
-    case e => log.error(s"Work not recognized by scoring actor: $e")
+    case unhandled => logger.error(s"Work not recognized by scoring actor: $unhandled")
   }
 
 }

@@ -20,7 +20,7 @@ package ch.chuv.lren.woken.validation
 import java.io.{ File, PrintWriter }
 
 import akka.actor.SupervisorStrategy.Restart
-import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
+import akka.actor.{ Actor, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
@@ -68,7 +68,7 @@ object ValidationActor extends LazyLogging {
 
 class ValidationActor
     extends Actor
-    with ActorLogging
+    with LazyLogging
     with DefaultJsonProtocol /*with ActorTracing*/ {
 
   private val complexModels = Set("kNN", "naive_bayes", "neural_network", "linear_model")
@@ -77,7 +77,7 @@ class ValidationActor
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
     case ValidationQuery(fold, model, data, varInfo) =>
-      log.info("Received validation work!")
+      logger.info("Received validation work!")
       // Reconstruct model using hadrian and validate over the provided data
       val replyTo = sender()
       Try {
@@ -85,7 +85,7 @@ class ValidationActor
         val modelNameO = model.fields.get("name").map(_.convertTo[String])
         modelNameO match {
           case Some(modelName) if complexModels.contains(modelName) =>
-            log.info(s"Validing model $modelName using Titus")
+            logger.info(s"Validating model $modelName using Titus")
             val modelFile = File.createTempFile(modelName, "-pfa")
             modelFile.deleteOnExit()
             val modelFileWriter = new PrintWriter(modelFile)
@@ -120,7 +120,7 @@ class ValidationActor
               replyTo ! ValidationResult(fold, varInfo, Right(results.elements.toList))
             } else {
               val msg = Source.fromFile(processOutputFile).getLines().mkString
-              log.error(s"Error while validating model: $msg \nModel was: \n$model")
+              logger.error(s"Error while validating model: $msg \nModel was: \n$model")
               replyTo ! ValidationResult(fold, varInfo, Left(msg))
             }
 
@@ -140,17 +140,17 @@ class ValidationActor
                   engine.jsonOutput(engine.action(x)).toJson
                 })
                 .toList
-            log.info(s"Validation work for $fold done!")
+            logger.info(s"Validation work for $fold done!")
 
             replyTo ! ValidationResult(fold, varInfo, Right(outputData))
         }
 
       }.recover {
         case e: Exception =>
-          log.error(e, s"Error $e while validating model: $model")
+          logger.error(s"Error $e while validating model: $model", e)
           replyTo ! ValidationResult(fold, varInfo, Left(e.toString))
       }
 
-    case e => log.error(s"Work not recognized by validation actor: $e")
+    case unhandled => logger.error(s"Work not recognized by validation actor: $unhandled")
   }
 }
