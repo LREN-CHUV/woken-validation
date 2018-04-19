@@ -87,6 +87,7 @@ class ValidationActor
         modelNameO match {
           case Some(modelName) if complexModels.contains(modelName) =>
             logger.info(s"Validating model $modelName using Titus")
+
             val modelFile = File.createTempFile(modelName, "-pfa")
             modelFile.deleteOnExit()
             val modelFileWriter = new PrintWriter(modelFile)

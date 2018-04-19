@@ -157,4 +157,49 @@ class ValidationActorTest
 
     }
   }
+
+  "A Gradient boosting model" should {
+    "validate" in {
+
+      val model = loadJson("/models/gradient_boosting.json").asJsObject
+
+      val data = List(
+        "{\"subjectageyears\": 62, \"lefthippocampus\": 1.2}",
+        "{\"subjectageyears\": 75, \"lefthippocampus\": 2.1}",
+        "{\"subjectageyears\": 82, \"lefthippocampus\": 1.5}"
+      ).map(_.parseJson)
+      val labels = List("AD", "AD", "AD").map(JsString.apply)
+
+      val validationRef = system.actorOf(Props[ValidationActor])
+
+      validationRef ! ValidationQuery(
+        0,
+        model,
+        data,
+        VariableMetaData("",
+          "",
+          VariableType.text,
+          None,
+          None,
+          None,
+          None,
+          None,
+          None,
+          None,
+          None,
+          None,
+          Set())
+      )
+
+      val r = receiveOne(60 seconds)
+      println(r)
+
+      val ValidationResult(_, _, Right(result)) = r
+
+      println(result)
+
+      result should contain theSameElementsInOrderAs labels
+
+    }
+  }
 }
