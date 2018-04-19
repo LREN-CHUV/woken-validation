@@ -17,16 +17,16 @@
 
 package ch.chuv.lren.woken.validation
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, DeadLetter}
 import akka.cluster.Cluster
-import akka.http.scaladsl.server.Directives.{ complete, failWith, get, pathPrefix }
-import akka.http.scaladsl.server.{ HttpApp, Route }
+import akka.http.scaladsl.server.Directives.{complete, failWith, get, pathPrefix}
+import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.stream.ActorMaterializer
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.{ Await, ExecutionContextExecutor }
+import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import scala.language.postfixOps
@@ -75,6 +75,12 @@ object Main extends App {
 
     system.actorOf(ValidationActor.roundRobinPoolProps(config), name = "validation")
     system.actorOf(ScoringActor.roundRobinPoolProps(config), name = "scoring")
+    val deadLetterMonitorActor =
+      system.actorOf(DeadLetterMonitorActor.props, name = "deadLetterMonitor")
+
+    // Subscribe to system wide event bus 'DeadLetter'
+    system.eventStream.subscribe(
+      deadLetterMonitorActor, classOf[DeadLetter])
 
     logger.info("Step 3/3: Startup complete.")
   }
