@@ -71,7 +71,7 @@ class ValidationActor
     with LazyLogging
     with DefaultJsonProtocol /*with ActorTracing*/ {
 
-  private val complexModels = Set("kNN", "naive_bayes", "neural_network", "linear_model")
+  private val complexModels = Set("kNN", "naive_bayes", "neural_network", "linear_model", "gradient_boosting")
 
   @SuppressWarnings(Array("org.wartremover.warts.Any", "org.wartremover.warts.TraversableOps"))
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
