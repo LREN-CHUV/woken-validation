@@ -17,16 +17,16 @@
 
 package ch.chuv.lren.woken.validation
 
-import akka.actor.{ ActorSystem, DeadLetter }
+import akka.actor.{ActorSystem, DeadLetter}
 import akka.cluster.Cluster
-import akka.http.scaladsl.server.Directives.{ complete, failWith, get, pathPrefix }
-import akka.http.scaladsl.server.{ HttpApp, Route }
+import akka.cluster.pubsub.{DistributedPubSub, DistributedPubSubMediator}
+import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.stream.ActorMaterializer
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.{ Await, ExecutionContextExecutor }
+import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import scala.language.postfixOps
@@ -49,7 +49,6 @@ object Main extends App {
         |akka {
         |  actor.provider = cluster
         |  extensions += "akka.cluster.pubsub.DistributedPubSub"
-        |  extensions += "akka.cluster.client.ClusterClientReceptionist"
         |}
       """.stripMargin)
       .withFallback(ConfigFactory.parseResourcesAnySyntax("akka.conf"))
@@ -70,11 +69,17 @@ object Main extends App {
   lazy val cluster = Cluster(system)
 
   // Start the local work dispatcher actors
-  Cluster(system) registerOnMemberUp {
+  cluster registerOnMemberUp {
     logger.info("Step 2/3: Cluster up, registering the actors...")
 
-    system.actorOf(ValidationActor.roundRobinPoolProps(config), name = "validation")
-    system.actorOf(ScoringActor.roundRobinPoolProps(config), name = "scoring")
+    val validation = system.actorOf(ValidationActor.roundRobinPoolProps(config), name = "validation")
+    val scoring = system.actorOf(ScoringActor.roundRobinPoolProps(config), name = "scoring")
+
+    val mediator = DistributedPubSub(system).mediator
+
+    mediator ! DistributedPubSubMediator.Put(validation)
+    mediator ! DistributedPubSubMediator.Put(scoring)
+
     val deadLetterMonitorActor =
       system.actorOf(DeadLetterMonitorActor.props, name = "deadLetterMonitor")
 
@@ -84,7 +89,7 @@ object Main extends App {
     logger.info("Step 3/3: Startup complete.")
   }
 
-  Cluster(system).registerOnMemberRemoved {
+  cluster.registerOnMemberRemoved {
     logger.info("Exiting...")
     system.registerOnTermination(System.exit(0))
     system.terminate()
