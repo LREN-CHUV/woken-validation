@@ -26,16 +26,17 @@ import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import com.typesafe.config.Config
 import ch.chuv.lren.woken.messages.validation._
+import com.typesafe.scalalogging.LazyLogging
 
 import scala.io.Source
-
 import scala.util.Try
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import spray.json._
+
 import scala.sys.process._
 
-object ValidationActor {
+object ValidationActor extends LazyLogging {
 
   def props: Props =
     Props(new ValidationActor())
@@ -51,7 +52,9 @@ object ValidationActor {
     )
     val validationSupervisorStrategy =
       OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
-        case _: Exception => Restart
+        case e: Exception =>
+          logger.error("Error detected in Validation actor, restarting", e)
+          Restart
       }
 
     RoundRobinPool(

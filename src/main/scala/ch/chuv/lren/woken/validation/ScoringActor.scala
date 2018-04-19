@@ -23,12 +23,13 @@ import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import com.typesafe.config.Config
 import ch.chuv.lren.woken.messages.validation.{ ScoringQuery, ScoringResult }
+import com.typesafe.scalalogging.LazyLogging
 
 import scala.util.{ Failure, Success, Try }
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-object ScoringActor {
+object ScoringActor extends LazyLogging {
 
   def props: Props =
     Props(new ScoringActor())
@@ -43,7 +44,9 @@ object ScoringActor {
     )
     val scoringSupervisorStrategy =
       OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
-        case _: Exception => Restart
+        case e: Exception =>
+          logger.error("Error detected in Scoring actor, restarting", e)
+          Restart
       }
 
     RoundRobinPool(
