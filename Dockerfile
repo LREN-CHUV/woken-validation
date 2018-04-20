@@ -58,10 +58,10 @@ WORKDIR /opt/woken-validation
 
 ENTRYPOINT ["/run.sh"]
 
-# Health checks on http://host:8081/health
-# Akka on 8082
-# Spark UI on 4040
-EXPOSE 8081 8082 8082/UDP 4040
+# 8081: Web service API, health checks on http://host:8081/health
+# 8082: Akka cluster
+# 4040: Spark UI (http://host:4040)
+EXPOSE 8081 8082 4040
 
 HEALTHCHECK --start-period=60s CMD curl -v --silent http://localhost:8081/health 2>&1 | grep UP
 

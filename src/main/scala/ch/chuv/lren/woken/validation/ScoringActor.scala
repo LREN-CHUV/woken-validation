@@ -58,7 +58,7 @@ object ScoringActor extends LazyLogging {
 
 }
 
-class ScoringActor extends Actor with LazyLogging /*with ActorTracing*/ {
+class ScoringActor extends Actor with LazyLogging {
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def receive: PartialFunction[Any, Unit] = LoggingReceive {

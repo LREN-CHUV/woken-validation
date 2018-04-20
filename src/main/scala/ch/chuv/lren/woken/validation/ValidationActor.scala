@@ -69,7 +69,7 @@ object ValidationActor extends LazyLogging {
 class ValidationActor
     extends Actor
     with LazyLogging
-    with DefaultJsonProtocol /*with ActorTracing*/ {
+    with DefaultJsonProtocol {
 
   private val complexModels =
     Set("kNN", "naive_bayes", "neural_network", "linear_model", "gradient_boosting")
