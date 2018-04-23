@@ -101,7 +101,7 @@ class ScoresTest extends FlatSpec with Matchers with JsonUtils {
 
   }*/
 
-  "ClassificationScore " should "be correct" in {
+  "PolynomialClassificationScore " should "be correct" in {
 
     implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.001)
 

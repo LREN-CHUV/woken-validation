@@ -1,0 +1,496 @@
+{
+  "action": [
+    {
+      "let": {
+        "x": {
+          "a.flatten": [
+            {
+              "new": [
+                {
+                  "u.arr": [
+                    {
+                      "/": [
+                        {
+                          "-": [
+                            {
+                              "cast.double": [
+                                {
+                                  "attr": "input",
+                                  "path": [
+                                    {
+                                      "string": "lefthippocampus"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            0.0
+                          ]
+                        },
+                        1.0
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "type": {
+                "items": {
+                  "items": "double",
+                  "type": "array"
+                },
+                "type": "array"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "let": {
+        "gaussFeatures": {
+          "else": [
+            0
+          ],
+          "if": {
+            ">": [
+              {
+                "a.len": [
+                  {
+                    "cell": "gaussModel"
+                  }
+                ]
+              },
+              0
+            ]
+          },
+          "then": [
+            {
+              "a.len": [
+                {
+                  "cell": "gaussModel",
+                  "path": [
+                    0,
+                    {
+                      "string": "stats"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "let": {
+        "gaussianLL": {
+          "a.map": [
+            {
+              "cell": "gaussModel"
+            },
+            {
+              "do": [
+                {
+                  "model.naive.gaussian": [
+                    {
+                      "a.subseq": [
+                        "x",
+                        0,
+                        "gaussFeatures"
+                      ]
+                    },
+                    {
+                      "attr": "dist",
+                      "path": [
+                        {
+                          "string": "stats"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "params": [
+                {
+                  "dist": {
+                    "fields": [
+                      {
+                        "name": "stats",
+                        "type": {
+                          "items": {
+                            "fields": [
+                              {
+                                "name": "mean",
+                                "type": "double"
+                              },
+                              {
+                                "name": "variance",
+                                "type": "double"
+                              }
+                            ],
+                            "name": "M",
+                            "type": "record"
+                          },
+                          "type": "array"
+                        }
+                      }
+                    ],
+                    "name": "GaussianDistribution",
+                    "type": "record"
+                  }
+                }
+              ],
+              "ret": "double"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "let": {
+        "multinomialLL": {
+          "a.map": [
+            {
+              "cell": "multinomialModel"
+            },
+            {
+              "do": [
+                {
+                  "model.naive.multinomial": [
+                    {
+                      "a.subseq": [
+                        "x",
+                        "gaussFeatures",
+                        {
+                          "a.len": [
+                            "x"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "attr": "dist",
+                      "path": [
+                        {
+                          "string": "logLikelihoods"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "params": [
+                {
+                  "dist": {
+                    "fields": [
+                      {
+                        "name": "logLikelihoods",
+                        "type": {
+                          "items": "double",
+                          "type": "array"
+                        }
+                      }
+                    ],
+                    "name": "MultinomialDistribution",
+                    "type": "record"
+                  }
+                }
+              ],
+              "ret": "double"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "let": {
+        "classLL": {
+          "cell": "logPrior"
+        }
+      }
+    },
+    {
+      "if": {
+        ">": [
+          {
+            "a.len": [
+              "gaussianLL"
+            ]
+          },
+          0
+        ]
+      },
+      "then": [
+        {
+          "set": {
+            "classLL": {
+              "la.add": [
+                "classLL",
+                "gaussianLL"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "if": {
+        ">": [
+          {
+            "a.len": [
+              "multinomialLL"
+            ]
+          },
+          0
+        ]
+      },
+      "then": [
+        {
+          "set": {
+            "classLL": {
+              "la.add": [
+                "classLL",
+                "multinomialLL"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "let": {
+        "norm": {
+          "a.logsumexp": [
+            "classLL"
+          ]
+        }
+      }
+    },
+    {
+      "let": {
+        "probs": {
+          "a.map": [
+            "classLL",
+            {
+              "do": [
+                {
+                  "m.exp": [
+                    {
+                      "-": [
+                        "x",
+                        "norm"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "params": [
+                {
+                  "x": "double"
+                }
+              ],
+              "ret": "double"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "cell": "classes",
+      "path": [
+        {
+          "a.argmax": [
+            "probs"
+          ]
+        }
+      ]
+    }
+  ],
+  "cells": {
+    "classes": {
+      "init": [
+        "AD",
+        "CN",
+        "Other"
+      ],
+      "rollback": false,
+      "shared": false,
+      "type": {
+        "items": "string",
+        "type": "array"
+      }
+    },
+    "gaussModel": {
+      "init": [
+        {
+          "stats": [
+            {
+              "mean": 0.0,
+              "variance": 1.972152263e-40
+            }
+          ]
+        },
+        {
+          "stats": [
+            {
+              "mean": 0.0,
+              "variance": 1.972152263e-40
+            }
+          ]
+        },
+        {
+          "stats": [
+            {
+              "mean": 2.8672,
+              "variance": 1.972152265e-31
+            }
+          ]
+        }
+      ],
+      "rollback": false,
+      "shared": false,
+      "type": {
+        "items": "GaussianDistribution",
+        "type": "array"
+      }
+    },
+    "logPrior": {
+      "init": [
+        null,
+        null,
+        0.0
+      ],
+      "rollback": false,
+      "shared": false,
+      "type": {
+        "items": "double",
+        "type": "array"
+      }
+    },
+    "multinomialModel": {
+      "init": [],
+      "rollback": false,
+      "shared": false,
+      "type": {
+        "items": "MultinomialDistribution",
+        "type": "array"
+      }
+    }
+  },
+  "fcns": {
+    "C": {
+      "do": [
+        {
+          "a.map": [
+            "categories",
+            {
+              "do": [
+                {
+                  "else": [
+                    0
+                  ],
+                  "if": {
+                    "==": [
+                      "cat",
+                      "x"
+                    ]
+                  },
+                  "then": [
+                    1
+                  ]
+                }
+              ],
+              "params": [
+                {
+                  "cat": "string"
+                }
+              ],
+              "ret": "double"
+            }
+          ]
+        }
+      ],
+      "params": [
+        {
+          "x": "string"
+        },
+        {
+          "categories": {
+            "items": "string",
+            "type": "array"
+          }
+        }
+      ],
+      "ret": {
+        "items": "double",
+        "type": "array"
+      }
+    },
+    "arr": {
+      "do": [
+        {
+          "new": [
+            "x"
+          ],
+          "type": {
+            "items": "double",
+            "type": "array"
+          }
+        }
+      ],
+      "params": [
+        {
+          "x": "double"
+        }
+      ],
+      "ret": {
+        "items": "double",
+        "type": "array"
+      }
+    },
+    "standardize": {
+      "do": [
+        {
+          "/": [
+            {
+              "-": [
+                "x",
+                "mu"
+              ]
+            },
+            "sigma"
+          ]
+        }
+      ],
+      "params": [
+        {
+          "x": "double"
+        },
+        {
+          "mu": "double"
+        },
+        {
+          "sigma": "double"
+        }
+      ],
+      "ret": "double"
+    }
+  },
+  "input": {
+    "fields": [
+      {
+        "name": "lefthippocampus",
+        "type": "double"
+      }
+    ],
+    "name": "Input",
+    "type": "record"
+  },
+  "metadata": {
+    "estimator": "{\"py/object\": \"sklearn_to_pfa.mixed_nb.MixedNB\", \"py/state\": {\"gauss_nb\": {\"py/object\": \"sklearn.naive_bayes.GaussianNB\", \"py/state\": {\"_sklearn_version\": \"0.19.1\", \"class_count_\": {\"py/object\": \"numpy.ndarray\", \"dtype\": \"float64\", \"values\": [0.0, 0.0, 859.0]}, \"class_prior_\": {\"py/object\": \"numpy.ndarray\", \"dtype\": \"float64\", \"values\": [0.0, 0.0, 1.0]}, \"classes_\": {\"py/object\": \"numpy.ndarray\", \"dtype\": \"<U5\", \"values\": [\"AD\", \"CN\", \"Other\"]}, \"priors\": null, \"sigma_\": {\"py/object\": \"numpy.ndarray\", \"dtype\": \"float64\", \"values\": [[1.9721522630525296e-40], [1.9721522630525296e-40], [1.972152265024682e-31]]}, \"theta_\": {\"py/object\": \"numpy.ndarray\", \"dtype\": \"float64\", \"values\": [[0.0], [0.0], [2.8671999999999995]]}}}, \"is_nominal\": [false], \"multi_nb\": {\"py/object\": \"sklearn.naive_bayes.MultinomialNB\", \"py/state\": {\"_sklearn_version\": \"0.19.1\", \"alpha\": 1.0, \"class_prior\": null, \"fit_prior\": true}}}}",
+    "score": "1.0"
+  },
+  "method": "map",
+  "name": "naive_bayes",
+  "output": "string"
+}
