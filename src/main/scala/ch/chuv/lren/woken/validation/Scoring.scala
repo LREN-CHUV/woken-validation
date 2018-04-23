@@ -258,8 +258,8 @@ trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring with
                        session: SparkSession): S = {
 
     logger.info(s"Classification scoring with")
-    logger.info(s"Algorithm output: ${algorithmOutput.toList.mkString(",")}")
-    logger.info(s"Label: ${label.toList.mkString(",")}")
+    logger.info(s"* Algorithm output: ${algorithmOutput.toList.mkString(",")}")
+    logger.info(s"* Label: ${label.toList.mkString(",")}")
 
     // Convert to dataframe
     val data: NonEmptyList[(String, String)] = algorithmOutput

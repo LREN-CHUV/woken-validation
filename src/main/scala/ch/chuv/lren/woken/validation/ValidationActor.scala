@@ -113,19 +113,26 @@ class ValidationActor
                           modelFile.toPath.toString,
                           dataFile.toPath.toString,
                           resultsFile.toPath.toString)
-            val process  = Process(cmd).run(new FileProcessLogger(processOutputFile))
+            val processLogger = new FileProcessLogger(processOutputFile)
+            val process  = Process(cmd).run(processLogger)
             val exitCode = process.exitValue()
+
+            processLogger.flush()
 
             if (exitCode == 0) {
               val results =
                 Source.fromFile(resultsFile).getLines().mkString.parseJson.asInstanceOf[JsArray]
-              replyTo ! ValidationResult(fold, varInfo, Right(results.elements.toList))
+              val outputData: List[JsValue] = results.elements.toList
+
+              logger.info(s"Validation work for fold $fold, variable ${varInfo.code} done. Results are $outputData")
+              replyTo ! ValidationResult(fold, varInfo, Right(outputData))
             } else {
               val msg = Source.fromFile(processOutputFile).getLines().mkString
-              logger.error(s"Error while validating model: $msg \nModel was: \n$model")
+              logger.error(s"Error while validating fold $fold, variable ${varInfo.code}: $msg \nModel was: \n$model")
               replyTo ! ValidationResult(fold, varInfo, Left(msg))
             }
 
+            processLogger.close()
             modelFile.delete()
             dataFile.delete()
             resultsFile.delete()
@@ -142,14 +149,14 @@ class ValidationActor
                   engine.jsonOutput(engine.action(x)).toJson
                 })
                 .toList
-            logger.info(s"Validation work for $fold done!")
 
+            logger.info(s"Validation work for fold $fold, variable ${varInfo.code} done. Results are $outputData")
             replyTo ! ValidationResult(fold, varInfo, Right(outputData))
         }
 
       }.recover {
         case e: Exception =>
-          logger.error(s"Error $e while validating model: $model", e)
+          logger.error(s"Error while validating fold $fold, variable ${varInfo.code}: $e \nModel was: \n$model", e)
           replyTo ! ValidationResult(fold, varInfo, Left(e.toString))
       }
 

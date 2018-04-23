@@ -55,8 +55,8 @@ class ValidationActorTest
         0,
         model,
         data,
-        VariableMetaData("",
-                         "",
+        VariableMetaData("r",
+                         "r",
                          VariableType.text,
                          None,
                          None,
@@ -94,8 +94,8 @@ class ValidationActorTest
         0,
         model,
         data,
-        VariableMetaData("",
-                         "",
+        VariableMetaData("mmse",
+                         "mmse",
                          VariableType.text,
                          None,
                          None,
@@ -109,8 +109,6 @@ class ValidationActorTest
                          Set())
       )
       val ValidationResult(_, _, Right(result)) = receiveOne(60 seconds)
-
-      println(result)
 
       result should contain theSameElementsInOrderAs labels
 
@@ -135,8 +133,8 @@ class ValidationActorTest
         0,
         model,
         data,
-        VariableMetaData("",
-                         "",
+        VariableMetaData("alzheimerbroadcategory",
+                         "alzheimerbroadcategory",
                          VariableType.text,
                          None,
                          None,
@@ -150,8 +148,6 @@ class ValidationActorTest
                          Set())
       )
       val ValidationResult(_, _, Right(result)) = receiveOne(60 seconds)
-
-      println(result)
 
       result should contain theSameElementsInOrderAs labels
 
@@ -176,8 +172,8 @@ class ValidationActorTest
         0,
         model,
         data,
-        VariableMetaData("",
-          "",
+        VariableMetaData("alzheimerbroadcategory",
+          "alzheimerbroadcategory",
           VariableType.text,
           None,
           None,
@@ -195,8 +191,6 @@ class ValidationActorTest
       println(r)
 
       val ValidationResult(_, _, Right(result)) = r
-
-      println(result)
 
       result should contain theSameElementsInOrderAs labels
 

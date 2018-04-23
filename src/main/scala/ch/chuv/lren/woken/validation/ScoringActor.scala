@@ -73,8 +73,10 @@ class ScoringActor extends Actor with LazyLogging {
 
       scores match {
         case Success(s) =>
+          // Evaluation is lazy in Spark
+          val score = s.toScore
           logger.info("Scoring work complete")
-          replyTo ! ScoringResult(Right(s.toScore))
+          replyTo ! ScoringResult(Right(score))
         case Failure(e) =>
           logger.error(e.toString, e)
           replyTo ! ScoringResult(Left(e.toString))

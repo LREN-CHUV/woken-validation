@@ -14,7 +14,6 @@ from logging import FileHandler, StreamHandler
 
 log = logging.getLogger('')
 log.addHandler(StreamHandler(sys.stdout))
-log.addHandler(FileHandler('/tmp/pfa_eval.log'))
 
 
 def load_document(file):
@@ -38,23 +37,23 @@ def get_engine(json_string):
 
     except ValueError as ex:
         # JSON validation
-        log.error("The file provided does not contain a valid JSON document: " + str(ex))
+        log.error("The file provided does not contain a valid JSON document: " + str(ex) + "; json_string was " + json_string)
         sys.exit(1)
     except PFASyntaxException as ex:
         # Syntax validation
-        log.error("The file provided does not contain a valid PFA compliant document: " + str(ex))
+        log.error("The file provided does not contain a valid PFA compliant document: " + str(ex) + "; json_string was " + json_string)
         sys.exit(1)
     except PFASemanticException as ex:
         # PFA semantic check
-        log.error("The file provided contains inconsistent PFA semantics: " + str(ex))
+        log.error("The file provided contains inconsistent PFA semantics: " + str(ex) + "; json_string was " + json_string)
         sys.exit(1)
     except PFAInitializationException as ex:
         # Scoring engine check
-        log.error("It wasn't possible to build a valid scoring engine from the PFA document: " + str(ex))
+        log.error("It wasn't possible to build a valid scoring engine from the PFA document: " + str(ex) + "; json_string was " + json_string)
         sys.exit(1)
     except Exception as ex:
         # Other exceptions
-        log.error("An unknown exception occurred: " + str(ex))
+        log.error("An unknown exception occurred: " + str(ex) + "; json_string was " + json_string)
         sys.exit(1)
 
     # Check that the PFA file uses the "map" method. Other methods are not supported
@@ -87,7 +86,11 @@ def main(pfa_file, data_file, results_file):
         results.write("[")
         first = True
         for item in data:
-            prediction = engine.action(item)
+            try:
+                prediction = engine.action(item)
+            except Exception as ex:
+                log.error("Cannot make prediction on " + str(item) + ", error was " + str(ex))
+                raise
             if first:
                 first = False
             else:
