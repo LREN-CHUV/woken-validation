@@ -43,18 +43,23 @@ object Main extends App {
   // 3. Configuration of Kamon pre-defined in kamon.conf, configurable by environment variables
   // 4. Custom configuration defined in application.conf and backed by reference.conf from the libraries
   //    for algorithms can be overriden by environment variables
-  lazy val config: Config =
+  lazy val config: Config = {
+    val remotingConfig = ConfigFactory.parseResourcesAnySyntax("akka-remoting.conf").resolve()
+    val remotingImpl = remotingConfig.getString("remoting.implementation")
     ConfigFactory
-      .parseString("""
-        |akka {
-        |  actor.provider = cluster
-        |  extensions += "akka.cluster.pubsub.DistributedPubSub"
-        |}
-      """.stripMargin)
+      .parseString(
+        """
+          |akka {
+          |  actor.provider = cluster
+          |  extensions += "akka.cluster.pubsub.DistributedPubSub"
+          |}
+        """.stripMargin)
       .withFallback(ConfigFactory.parseResourcesAnySyntax("akka.conf"))
+      .withFallback(ConfigFactory.parseResourcesAnySyntax(s"akka-$remotingImpl-remoting.conf"))
       .withFallback(ConfigFactory.parseResourcesAnySyntax("kamon.conf"))
       .withFallback(ConfigFactory.load())
       .resolve()
+  }
 
   private val clusterSystemName = config.getString("clustering.cluster.name")
   private val seedNodes         = config.getStringList("akka.cluster.seed-nodes").toList
