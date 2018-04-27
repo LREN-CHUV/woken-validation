@@ -20,6 +20,8 @@ package ch.chuv.lren.woken.validation
 import akka.actor.{ActorSystem, DeadLetter}
 import akka.cluster.Cluster
 import akka.cluster.pubsub.{DistributedPubSub, DistributedPubSubMediator}
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.stream.ActorMaterializer
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
@@ -115,11 +117,9 @@ object Main extends App {
       get {
         // TODO: proper health check is required, check db connection, check cluster availability...
         if (cluster.state.leader.isEmpty)
-          failWith(new Exception("No leader elected for the cluster"))
+          complete((StatusCodes.InternalServerError, "No leader elected for the cluster"))
         else if (cluster.state.members.size < 2)
-          failWith(
-            new Exception("Expected at least Woken + Woken validation server in the cluster")
-          )
+          complete((StatusCodes.InternalServerError, "Expected at least Woken + Woken validation server in the cluster"))
         else
           complete("UP")
       }
@@ -128,7 +128,7 @@ object Main extends App {
     val readinessRoute: Route = pathPrefix("readiness") {
       get {
         if (cluster.state.leader.isEmpty)
-          failWith(new Exception("No leader elected for the cluster"))
+          complete((StatusCodes.InternalServerError, "No leader elected for the cluster"))
         else
           complete("READY")
       }
