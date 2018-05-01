@@ -20,7 +20,6 @@ package ch.chuv.lren.woken.validation
 import akka.actor.{ActorSystem, DeadLetter}
 import akka.cluster.Cluster
 import akka.cluster.pubsub.{DistributedPubSub, DistributedPubSubMediator}
-import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.stream.ActorMaterializer
