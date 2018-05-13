@@ -17,19 +17,17 @@
 
 package ch.chuv.lren.woken.validation
 
-import java.io.File
-
-import akka.actor.{ActorSystem, DeadLetter}
+import akka.actor.{ ActorSystem, DeadLetter }
 import akka.cluster.Cluster
-import akka.cluster.pubsub.{DistributedPubSub, DistributedPubSubMediator}
+import akka.cluster.pubsub.{ DistributedPubSub, DistributedPubSubMediator }
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.{HttpApp, Route}
+import akka.http.scaladsl.server.{ HttpApp, Route }
 import akka.stream.ActorMaterializer
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.{Await, ExecutionContextExecutor}
+import scala.concurrent.{ Await, ExecutionContextExecutor }
 import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import scala.language.postfixOps
@@ -48,10 +46,9 @@ object Main extends App {
   //    for algorithms can be overriden by environment variables
   lazy val config: Config = {
     val remotingConfig = ConfigFactory.parseResourcesAnySyntax("akka-remoting.conf").resolve()
-    val remotingImpl = remotingConfig.getString("remoting.implementation")
+    val remotingImpl   = remotingConfig.getString("remoting.implementation")
     ConfigFactory
-      .parseString(
-        """
+      .parseString("""
           |akka {
           |  actor.provider = cluster
           |  extensions += "akka.cluster.pubsub.DistributedPubSub"
@@ -64,48 +61,7 @@ object Main extends App {
       .resolve()
   }
 
-  val kamonConfig = config.getConfig("kamon")
-
-  if (kamonConfig.getBoolean("enabled") || kamonConfig.getBoolean("prometheus.enabled") || kamonConfig
-    .getBoolean("zipkin.enabled")) {
-
-    logger.info("Kamon configuration:")
-    logger.info(config.getConfig("kamon").toString)
-    logger.info(s"Start monitoring...")
-
-    Kamon.reconfigure(config)
-
-    val hostSystemMetrics = kamonConfig.getBoolean("system-metrics.host.enabled")
-    if (hostSystemMetrics) {
-      logger.info(s"Start Sigar metrics...")
-      Try {
-        val sigarLoader = new SigarLoader(classOf[Sigar])
-        sigarLoader.load()
-      }
-
-      Try(
-        SigarProvisioner.provision(
-          new File(System.getProperty("user.home") + File.separator + ".native")
-        )
-      ).recover { case e: Exception => logger.warn("Cannot provision Sigar", e) }
-
-      if (SigarProvisioner.isNativeLoaded)
-        logger.info("Sigar metrics are available")
-      else
-        logger.warn("Sigar metrics are not available")
-    }
-
-    if (hostSystemMetrics || kamonConfig.getBoolean("system-metrics.jvm.enabled")) {
-      logger.info(s"Start collection of system metrics...")
-      SystemMetrics.startCollecting()
-    }
-
-    if (kamonConfig.getBoolean("prometheus.enabled"))
-      Kamon.addReporter(new PrometheusReporter)
-
-    if (kamonConfig.getBoolean("zipkin.enabled"))
-      Kamon.addReporter(new ZipkinReporter)
-  }
+  KamonSupport.startKamonReporters(config)
 
   private val clusterSystemName = config.getString("clustering.cluster.name")
   private val seedNodes         = config.getStringList("akka.cluster.seed-nodes").toList
@@ -123,7 +79,8 @@ object Main extends App {
   cluster registerOnMemberUp {
     logger.info("Step 2/3: Cluster up, registering the actors...")
 
-    val validation = system.actorOf(ValidationActor.roundRobinPoolProps(config), name = "validation")
+    val validation =
+      system.actorOf(ValidationActor.roundRobinPoolProps(config), name = "validation")
     val scoring = system.actorOf(ScoringActor.roundRobinPoolProps(config), name = "scoring")
 
     val mediator = DistributedPubSub(system).mediator
@@ -163,7 +120,10 @@ object Main extends App {
         if (cluster.state.leader.isEmpty)
           complete((StatusCodes.InternalServerError, "No leader elected for the cluster"))
         else if (cluster.state.members.size < 2)
-          complete((StatusCodes.InternalServerError, "Expected at least Woken + Woken validation server in the cluster"))
+          complete(
+            (StatusCodes.InternalServerError,
+             "Expected at least Woken + Woken validation server in the cluster")
+          )
         else
           complete("UP")
       }
