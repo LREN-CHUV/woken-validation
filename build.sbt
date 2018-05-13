@@ -33,6 +33,14 @@ lazy val `woken-validation` =
           library.sparkMllib,
           library.sparkSql,
           library.wokenMessages,
+          library.kamon,
+          library.kamonAkka,
+          library.kamonAkkaHttp,
+          library.kamonAkkaRemote,
+          library.kamonPrometheus,
+          library.kamonZipkin,
+          library.kamonSystemMetrics,
+          library.kamonSigar,
           library.scalaCheck   % Test,
           library.scalaTest    % Test,
           library.akkaTestkit  % Test
@@ -67,6 +75,14 @@ lazy val library =
       // TODO: Spark can be upgraded, but there is some work here
       val spark          = "2.0.2"
       val wokenMessages  = "2.7.4"
+
+      val kamon           = "1.1.2"
+      val kamonAkka       = "1.0.1"
+      val kamonAkkaRemote = "1.0.1"
+      val kamonAkkaHttp   = "1.1.0"
+      val kamonReporter   = "1.0.0"
+      val kamonSystemMetrics = "1.0.0"
+      val kamonSigar      = "1.6.6-rev002"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
@@ -78,6 +94,7 @@ lazy val library =
       val excludeHadoop = ExclusionRule(organization = "org.apache.hadoop")
       val excludeSlf4jLog4j12 = ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12")
       val sparkExclusions = Seq(excludeIvy, excludeMail, excludeSlf4jLog4j12)
+      val excludeLogback = ExclusionRule(organization = "ch.qos.logback", name = "logback-classic")
     }
     val scalaCheck: ModuleID  = "org.scalacheck"    %% "scalacheck"   % Version.scalaCheck
     val scalaTest: ModuleID   = "org.scalatest"     %% "scalatest"    % Version.scalaTest
@@ -102,6 +119,17 @@ lazy val library =
     val sparkMllib: ModuleID  = "org.apache.spark"  %% "spark-mllib"  % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
     val sparkSql: ModuleID    = "org.apache.spark"  %% "spark-sql"    % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
     val wokenMessages: ModuleID = "ch.chuv.lren.woken" %% "woken-messages" % Version.wokenMessages
+
+    // Kamon
+    val kamon: ModuleID        = "io.kamon" %% "kamon-core" % Version.kamon excludeAll ExclusionRules.excludeLogback
+    val kamonAkka: ModuleID    = "io.kamon" %% "kamon-akka-2.5" % Version.kamonAkka excludeAll ExclusionRules.excludeLogback
+    val kamonAkkaRemote: ModuleID = "io.kamon" %% "kamon-akka-remote-2.5" % Version.kamonAkkaRemote excludeAll ExclusionRules.excludeLogback
+    val kamonAkkaHttp: ModuleID = "io.kamon" %% "kamon-akka-http-2.5" % Version.kamonAkkaHttp excludeAll ExclusionRules.excludeLogback
+    val kamonSystemMetrics: ModuleID = "io.kamon" %% "kamon-system-metrics" % Version.kamonSystemMetrics excludeAll ExclusionRules.excludeLogback
+    val kamonPrometheus: ModuleID = "io.kamon" %% "kamon-prometheus" % Version.kamonReporter excludeAll ExclusionRules.excludeLogback
+    val kamonZipkin: ModuleID  =  "io.kamon" %% "kamon-zipkin" % Version.kamonReporter excludeAll ExclusionRules.excludeLogback
+    val kamonSigar: ModuleID   = "io.kamon"           % "sigar-loader" % Version.kamonSigar
+
   }
 
 resolvers += "HBPMedical Bintray Repo" at "https://dl.bintray.com/hbpmedical/maven/"
@@ -191,6 +219,31 @@ lazy val scalafmtSettings =
             oldStrategy(x)
         }
 
+// Create a new MergeStrategy for aop.xml files
+val aopMerge: MergeStrategy = new MergeStrategy {
+  val name = "aopMerge"
+  import scala.xml._
+  import scala.xml.dtd._
+
+  def apply(tempDir: File, path: String, files: Seq[File]): Either[String, Seq[(File, String)]] = {
+    val dt = DocType("aspectj", PublicID("-//AspectJ//DTD//EN", "http://www.eclipse.org/aspectj/dtd/aspectj.dtd"), Nil)
+    val file = MergeStrategy.createMergeTarget(tempDir, path)
+    val xmls: Seq[Elem] = files.map(XML.loadFile)
+    val aspectsChildren: Seq[Node] = xmls.flatMap(_ \\ "aspectj" \ "aspects" \ "_")
+    val weaverChildren: Seq[Node] = xmls.flatMap(_ \\ "aspectj" \ "weaver" \ "_")
+    val options: String = xmls.map(x => (x \\ "aspectj" \ "weaver" \ "@options").text).mkString(" ").trim
+    val weaverAttr = if (options.isEmpty) Null else new UnprefixedAttribute("options", options, Null)
+    val aspects = new Elem(null, "aspects", Null, TopScope, false, aspectsChildren: _*)
+    val weaver = new Elem(null, "weaver", weaverAttr, TopScope, false, weaverChildren: _*)
+    val aspectj = new Elem(null, "aspectj", Null, TopScope, false, aspects, weaver)
+    XML.save(file.toString, aspectj, "UTF-8", xmlDecl = false, dt)
+    IO.append(file, IO.Newline.getBytes(IO.defaultCharset))
+    Right(Seq(file -> path))
+  }
+}
+
+
+
 val customMergeStrategy: String => MergeStrategy = {
   case PathList("io", "hydrosphere", xs @ _*) => MergeStrategy.first
   case PathList("org","aopalliance", xs @ _*) => MergeStrategy.last
@@ -211,5 +264,6 @@ val customMergeStrategy: String => MergeStrategy = {
   case "META-INF/mimetypes.default" => MergeStrategy.last
   case "plugin.properties" => MergeStrategy.last
   case "log4j.properties" => MergeStrategy.last
+  case PathList("META-INF", "aop.xml") => aopMerge
   case s => MergeStrategy.defaultMergeStrategy(s)
 }

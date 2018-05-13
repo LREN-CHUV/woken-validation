@@ -66,10 +66,7 @@ object ValidationActor extends LazyLogging {
 
 }
 
-class ValidationActor
-    extends Actor
-    with LazyLogging
-    with DefaultJsonProtocol {
+class ValidationActor extends Actor with LazyLogging with DefaultJsonProtocol {
 
   private val complexModels =
     Set("kNN", "naive_bayes", "neural_network", "linear_model", "gradient_boosting")
@@ -114,8 +111,8 @@ class ValidationActor
                           dataFile.toPath.toString,
                           resultsFile.toPath.toString)
             val processLogger = new FileProcessLogger(processOutputFile)
-            val process  = Process(cmd).run(processLogger)
-            val exitCode = process.exitValue()
+            val process       = Process(cmd).run(processLogger)
+            val exitCode      = process.exitValue()
 
             processLogger.flush()
 
@@ -124,11 +121,15 @@ class ValidationActor
                 Source.fromFile(resultsFile).getLines().mkString.parseJson.asInstanceOf[JsArray]
               val outputData: List[JsValue] = results.elements.toList
 
-              logger.info(s"Validation work for fold $fold, variable ${varInfo.code} done. Results are $outputData")
+              logger.info(
+                s"Validation work for fold $fold, variable ${varInfo.code} done. Results are $outputData"
+              )
               replyTo ! ValidationResult(fold, varInfo, Right(outputData))
             } else {
               val msg = Source.fromFile(processOutputFile).getLines().mkString
-              logger.error(s"Error while validating fold $fold, variable ${varInfo.code}: $msg \nModel was: \n$model")
+              logger.error(
+                s"Error while validating fold $fold, variable ${varInfo.code}: $msg \nModel was: \n$model"
+              )
               replyTo ! ValidationResult(fold, varInfo, Left(msg))
             }
 
@@ -150,13 +151,18 @@ class ValidationActor
                 })
                 .toList
 
-            logger.info(s"Validation work for fold $fold, variable ${varInfo.code} done. Results are $outputData")
+            logger.info(
+              s"Validation work for fold $fold, variable ${varInfo.code} done. Results are $outputData"
+            )
             replyTo ! ValidationResult(fold, varInfo, Right(outputData))
         }
 
       }.recover {
         case e: Exception =>
-          logger.error(s"Error while validating fold $fold, variable ${varInfo.code}: $e \nModel was: \n$model", e)
+          logger.error(
+            s"Error while validating fold $fold, variable ${varInfo.code}: $e \nModel was: \n$model",
+            e
+          )
           replyTo ! ValidationResult(fold, varInfo, Left(e.toString))
       }
 

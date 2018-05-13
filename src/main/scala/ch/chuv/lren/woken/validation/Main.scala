@@ -17,17 +17,17 @@
 
 package ch.chuv.lren.woken.validation
 
-import akka.actor.{ActorSystem, DeadLetter}
+import akka.actor.{ ActorSystem, DeadLetter }
 import akka.cluster.Cluster
-import akka.cluster.pubsub.{DistributedPubSub, DistributedPubSubMediator}
+import akka.cluster.pubsub.{ DistributedPubSub, DistributedPubSubMediator }
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.{HttpApp, Route}
+import akka.http.scaladsl.server.{ HttpApp, Route }
 import akka.stream.ActorMaterializer
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.{Await, ExecutionContextExecutor}
+import scala.concurrent.{ Await, ExecutionContextExecutor }
 import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import scala.language.postfixOps
@@ -46,10 +46,9 @@ object Main extends App {
   //    for algorithms can be overriden by environment variables
   lazy val config: Config = {
     val remotingConfig = ConfigFactory.parseResourcesAnySyntax("akka-remoting.conf").resolve()
-    val remotingImpl = remotingConfig.getString("remoting.implementation")
+    val remotingImpl   = remotingConfig.getString("remoting.implementation")
     ConfigFactory
-      .parseString(
-        """
+      .parseString("""
           |akka {
           |  actor.provider = cluster
           |  extensions += "akka.cluster.pubsub.DistributedPubSub"
@@ -61,6 +60,8 @@ object Main extends App {
       .withFallback(ConfigFactory.load())
       .resolve()
   }
+
+  KamonSupport.startKamonReporters(config)
 
   private val clusterSystemName = config.getString("clustering.cluster.name")
   private val seedNodes         = config.getStringList("akka.cluster.seed-nodes").toList
@@ -78,7 +79,8 @@ object Main extends App {
   cluster registerOnMemberUp {
     logger.info("Step 2/3: Cluster up, registering the actors...")
 
-    val validation = system.actorOf(ValidationActor.roundRobinPoolProps(config), name = "validation")
+    val validation =
+      system.actorOf(ValidationActor.roundRobinPoolProps(config), name = "validation")
     val scoring = system.actorOf(ScoringActor.roundRobinPoolProps(config), name = "scoring")
 
     val mediator = DistributedPubSub(system).mediator
@@ -118,7 +120,10 @@ object Main extends App {
         if (cluster.state.leader.isEmpty)
           complete((StatusCodes.InternalServerError, "No leader elected for the cluster"))
         else if (cluster.state.members.size < 2)
-          complete((StatusCodes.InternalServerError, "Expected at least Woken + Woken validation server in the cluster"))
+          complete(
+            (StatusCodes.InternalServerError,
+             "Expected at least Woken + Woken validation server in the cluster")
+          )
         else
           complete("UP")
       }

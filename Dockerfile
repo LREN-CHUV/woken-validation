@@ -41,13 +41,39 @@ ARG VCS_REF
 ARG VERSION
 
 COPY docker/run.sh /
+ADD  docker/weaver-agent.sh /opt/woken-validation/
 
 RUN adduser -H -D -u 1000 woken \
     && apk add --update --no-cache curl
 
+RUN  chmod +x /opt/woken-validation/weaver-agent.sh \
+         && /opt/woken-validation/weaver-agent.sh
+
 RUN apk add --update --no-cache python2 python2-dev gfortran build-base py2-pip \
     && pip2 install numpy titus \
     && apk del python2-dev build-base py2-pip
+
+RUN set -ex \
+	&& apk add -u --no-cache --virtual .build-deps \
+		git gcc libc-dev make cmake libtirpc-dev pax-utils \
+	&& mkdir -p /usr/src \
+	&& cd /usr/src \
+	&& git clone --branch sigar-musl https://github.com/ncopa/sigar.git \
+	&& mkdir sigar/build \
+	&& cd sigar/build \
+	&& CFLAGS="-std=gnu89" cmake .. \
+	&& make -j$(getconf _NPROCESSORS_ONLN) \
+	&& make install \
+	&& runDeps="$( \
+		scanelf --needed --nobanner --recursive /usr/local \
+			| awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+			| sort -u \
+			| xargs -r apk info --installed \
+			| sort -u \
+	)" \
+	&& apk add --virtual .libsigar-rundeps $runDeps \
+	&& apk del .build-deps \
+    && rm -rf /usr/src/sigar
 
 COPY src/main/python/pfa_eval.py /pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
@@ -55,6 +81,7 @@ COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /o
 USER woken
 
 WORKDIR /opt/woken-validation
+
 
 ENTRYPOINT ["/run.sh"]
 
