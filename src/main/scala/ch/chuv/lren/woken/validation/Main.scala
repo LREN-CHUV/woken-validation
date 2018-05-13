@@ -17,6 +17,8 @@
 
 package ch.chuv.lren.woken.validation
 
+import java.io.File
+
 import akka.actor.{ActorSystem, DeadLetter}
 import akka.cluster.Cluster
 import akka.cluster.pubsub.{DistributedPubSub, DistributedPubSubMediator}
@@ -60,6 +62,49 @@ object Main extends App {
       .withFallback(ConfigFactory.parseResourcesAnySyntax("kamon.conf"))
       .withFallback(ConfigFactory.load())
       .resolve()
+  }
+
+  val kamonConfig = config.getConfig("kamon")
+
+  if (kamonConfig.getBoolean("enabled") || kamonConfig.getBoolean("prometheus.enabled") || kamonConfig
+    .getBoolean("zipkin.enabled")) {
+
+    logger.info("Kamon configuration:")
+    logger.info(config.getConfig("kamon").toString)
+    logger.info(s"Start monitoring...")
+
+    Kamon.reconfigure(config)
+
+    val hostSystemMetrics = kamonConfig.getBoolean("system-metrics.host.enabled")
+    if (hostSystemMetrics) {
+      logger.info(s"Start Sigar metrics...")
+      Try {
+        val sigarLoader = new SigarLoader(classOf[Sigar])
+        sigarLoader.load()
+      }
+
+      Try(
+        SigarProvisioner.provision(
+          new File(System.getProperty("user.home") + File.separator + ".native")
+        )
+      ).recover { case e: Exception => logger.warn("Cannot provision Sigar", e) }
+
+      if (SigarProvisioner.isNativeLoaded)
+        logger.info("Sigar metrics are available")
+      else
+        logger.warn("Sigar metrics are not available")
+    }
+
+    if (hostSystemMetrics || kamonConfig.getBoolean("system-metrics.jvm.enabled")) {
+      logger.info(s"Start collection of system metrics...")
+      SystemMetrics.startCollecting()
+    }
+
+    if (kamonConfig.getBoolean("prometheus.enabled"))
+      Kamon.addReporter(new PrometheusReporter)
+
+    if (kamonConfig.getBoolean("zipkin.enabled"))
+      Kamon.addReporter(new ZipkinReporter)
   }
 
   private val clusterSystemName = config.getString("clustering.cluster.name")
