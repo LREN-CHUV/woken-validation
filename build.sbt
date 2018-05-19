@@ -74,7 +74,7 @@ lazy val library =
       val hadrian        = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
       val spark          = "2.0.2"
-      val wokenMessages = "2.8.0"
+      val wokenMessages = "2.8.1"
 
       val kamon           = "1.1.2"
       val kamonAkka       = "1.0.1"
