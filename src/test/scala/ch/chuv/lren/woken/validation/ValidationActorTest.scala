@@ -173,18 +173,18 @@ class ValidationActorTest
         model,
         data,
         VariableMetaData("alzheimerbroadcategory",
-          "alzheimerbroadcategory",
-          VariableType.text,
-          None,
-          None,
-          None,
-          None,
-          None,
-          None,
-          None,
-          None,
-          None,
-          Set())
+                         "alzheimerbroadcategory",
+                         VariableType.text,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         None,
+                         Set())
       )
 
       val r = receiveOne(60 seconds)

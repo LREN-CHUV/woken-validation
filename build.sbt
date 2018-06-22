@@ -144,6 +144,7 @@ lazy val settings = commonSettings ++ gitSettings ++ scalafmtSettings
 lazy val commonSettings =
   Seq(
     scalaVersion := "2.11.12",
+    ensimeScalaVersion in ThisBuild := "2.11.12",
     organization in ThisBuild := "ch.chuv.lren.woken",
     organizationName in ThisBuild := "LREN CHUV for Human Brain Project",
     homepage in ThisBuild := Some(url(s"https://github.com/HBPMedical/${name.value}/#readme")),
@@ -174,7 +175,7 @@ lazy val commonSettings =
     wartremoverWarnings in (Compile, compile) ++= Warts.unsafe,
     fork in run := true,
     test in assembly := {},
-    fork in Test := false,
+    fork in Test := true,
     parallelExecution in Test := false
   )
 

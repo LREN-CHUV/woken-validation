@@ -153,6 +153,7 @@ case class BinaryClassificationThresholdScoring() extends Scoring {
           .rdd
           .map {
             case Row(output: Double, label: Double) => (output, label)
+            case row => throw new IllegalArgumentException(s"Unexpected data row $row, expecting Row(Double, Double)")
           }
       )
     })
@@ -269,14 +270,31 @@ trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring with
       })
 
     val labelsMap = enumeration.zipWithIndex.map({ case (x, i) => (x, i.toDouble) }).toMap
+    println(s"labelsMap: $labelsMap")
 
     val df = session
-      .createDataFrame(data.map(x => { (labelsMap.get(x._1), labelsMap.get(x._2)) }).toList)
+      .createDataFrame(
+        data
+          .map(x => {
+            if (!labelsMap.contains(x._1)) {
+              throw new Exception("Cannot find label ${x._1} in map $labelMap")
+            }
+            if (!labelsMap.contains(x._2)) {
+              throw new Exception("Cannot find label ${x._2} in map $labelMap")
+            }
+            (labelsMap.get(x._1), labelsMap.get(x._2))
+          })
+          .toList
+      )
       .toDF("output", "label")
 
     val predictionAndLabels =
       df.rdd.map {
         case Row(output_index: Double, label_index: Double) => (output_index, label_index)
+        case row =>
+          throw new IllegalArgumentException(
+            s"Unexpected data row $row, expecting Row(Double, Double)"
+          )
       }
 
     val metrics = new MulticlassMetrics(predictionAndLabels)
@@ -333,6 +351,10 @@ object RegressionScoring extends Scoring {
     val predictionAndLabels =
       df.rdd.map {
         case Row(prediction: Double, label: Double) => (prediction, label)
+        case row =>
+          throw new IllegalArgumentException(
+            s"Unexpected data row $row, expecting Row(Double, Double)"
+          )
       }
 
     RegressionScoreHolder(new RegressionMetrics(predictionAndLabels, false))
