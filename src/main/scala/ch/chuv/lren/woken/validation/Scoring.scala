@@ -41,13 +41,13 @@ trait ScoreHolder {
   */
 trait Scoring {
 
-  def compute(algorithmOutput: NonEmptyList[JsValue],
-              labels: NonEmptyList[JsValue]): Try[ScoreHolder] = {
+  def compute(algorithmOutput: NonEmptyList[JsValue], labels: NonEmptyList[JsValue]): Try[Score] = {
     val session = Scoring.spark.newSession()
     SparkSession.setActiveSession(session)
 
     val scores = Try(
-      compute(algorithmOutput, labels, session)
+      // Evaluation is lazy in Spark, perform it here
+      compute(algorithmOutput, labels, session).toScore
     )
 
     SparkSession.clearActiveSession()
@@ -119,7 +119,7 @@ case class BinaryClassificationThresholdScores(metrics: NonEmptyList[BinaryClass
 }
 
 @SuppressWarnings(Array("org.wartremover.warts.TraversableOps"))
-case class BinaryClassificationThresholdScoring() extends Scoring {
+case class BinaryClassificationThresholdScoring() extends Scoring with LazyLogging {
 
   override def compute(algorithmOutput: NonEmptyList[String],
                        label: NonEmptyList[String]): BinaryClassificationThresholdScores = {
@@ -153,7 +153,10 @@ case class BinaryClassificationThresholdScoring() extends Scoring {
           .rdd
           .map {
             case Row(output: Double, label: Double) => (output, label)
-            case row => throw new IllegalArgumentException(s"Unexpected data row $row, expecting Row(Double, Double)")
+            case row =>
+              val error = s"Unexpected data row $row, expecting Row(Double, Double)"
+              logger.warn(error)
+              throw new IllegalArgumentException(error)
           }
       )
     })
@@ -270,17 +273,21 @@ trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring with
       })
 
     val labelsMap = enumeration.zipWithIndex.map({ case (x, i) => (x, i.toDouble) }).toMap
-    println(s"labelsMap: $labelsMap")
+    logger.info(s"* LabelsMap: $labelsMap")
 
     val df = session
       .createDataFrame(
         data
           .map(x => {
             if (!labelsMap.contains(x._1)) {
-              throw new Exception("Cannot find label ${x._1} in map $labelMap")
+              val error = s"Cannot find label ${x._1} in map $labelsMap"
+              logger.warn(error)
+              throw new Exception(error)
             }
             if (!labelsMap.contains(x._2)) {
-              throw new Exception("Cannot find label ${x._2} in map $labelMap")
+              val error = s"Cannot find label ${x._2} in map $labelsMap"
+              logger.warn(error)
+              throw new Exception(error)
             }
             (labelsMap.get(x._1), labelsMap.get(x._2))
           })
@@ -292,9 +299,9 @@ trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring with
       df.rdd.map {
         case Row(output_index: Double, label_index: Double) => (output_index, label_index)
         case row =>
-          throw new IllegalArgumentException(
-            s"Unexpected data row $row, expecting Row(Double, Double)"
-          )
+          val error = s"Unexpected data row $row, expecting Row(Double, Double)"
+          logger.warn(error)
+          throw new IllegalArgumentException(error)
       }
 
     val metrics = new MulticlassMetrics(predictionAndLabels)
@@ -331,7 +338,7 @@ case class RegressionScoreHolder(metrics: RegressionMetrics) extends ScoreHolder
   )
 }
 
-object RegressionScoring extends Scoring {
+object RegressionScoring extends Scoring with LazyLogging {
 
   override def compute(algorithmOutput: NonEmptyList[JsValue],
                        label: NonEmptyList[JsValue],
@@ -352,9 +359,9 @@ object RegressionScoring extends Scoring {
       df.rdd.map {
         case Row(prediction: Double, label: Double) => (prediction, label)
         case row =>
-          throw new IllegalArgumentException(
-            s"Unexpected data row $row, expecting Row(Double, Double)"
-          )
+          val error = s"Unexpected data row $row, expecting Row(Double, Double)"
+          logger.warn(error)
+          throw new IllegalArgumentException(error)
       }
 
     RegressionScoreHolder(new RegressionMetrics(predictionAndLabels, false))

@@ -22,7 +22,7 @@ import akka.actor.{ Actor, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import com.typesafe.config.Config
-import ch.chuv.lren.woken.messages.validation.{ ScoringQuery, ScoringResult }
+import ch.chuv.lren.woken.messages.validation.{ Score, ScoringQuery, ScoringResult }
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.util.{ Failure, Success, Try }
@@ -69,12 +69,10 @@ class ScoringActor extends Actor with LazyLogging {
       )
       val replyTo = sender()
 
-      val scores: Try[ScoreHolder] = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
+      val scores: Try[Score] = Scoring(targetMetaData).compute(algorithmOutput, groundTruth)
 
       scores match {
-        case Success(s) =>
-          // Evaluation is lazy in Spark
-          val score = s.toScore
+        case Success(score) =>
           logger.info("Scoring work complete")
           replyTo ! ScoringResult(Right(score))
         case Failure(e) =>
