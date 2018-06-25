@@ -97,8 +97,15 @@ object Main extends App {
     logger.info("Step 3/3: Startup complete.")
   }
 
+  system.registerOnTermination {
+    cluster.leave(cluster.selfAddress)
+    KamonSupport.stopKamonReporters()
+  }
+
   cluster.registerOnMemberRemoved {
     logger.info("Exiting...")
+    cluster.leave(cluster.selfAddress)
+    KamonSupport.stopKamonReporters()
     system.registerOnTermination(System.exit(0))
     system.terminate()
 

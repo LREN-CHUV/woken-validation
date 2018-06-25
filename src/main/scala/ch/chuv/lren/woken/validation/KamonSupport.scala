@@ -83,4 +83,12 @@ object KamonSupport {
     }
   }
 
+  def stopKamonReporters(): Unit = {
+      if (hostSystemMetrics || kamonConfig.getBoolean("system-metrics.jvm.enabled")) {
+        logger.info(s"Stop collection of system metrics...")
+        SystemMetrics.stopCollecting()
+      }
+      Kamon.stopAllReporters()
+}
+
 }
