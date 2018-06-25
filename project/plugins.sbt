@@ -26,3 +26,5 @@ addSbtPlugin("de.heikoseeberger" % "sbt-header"      % "4.1.0")
 
 // Versioning
 addSbtPlugin("com.typesafe.sbt"  % "sbt-git"         % "0.9.3")
+
+addSbtPlugin("org.ensime" % "sbt-ensime" % "2.3.0")
