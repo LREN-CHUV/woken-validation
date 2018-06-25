@@ -41,6 +41,7 @@ lazy val `woken-validation` =
           library.kamonZipkin,
           library.kamonSystemMetrics,
           library.kamonSigar,
+          library.bugsnag,
           library.scalaCheck   % Test,
           library.scalaTest    % Test,
           library.akkaTestkit  % Test
@@ -83,6 +84,7 @@ lazy val library =
       val kamonReporter   = "1.0.0"
       val kamonSystemMetrics = "1.0.0"
       val kamonSigar      = "1.6.6-rev002"
+      val bugsnag         = "3.1.6"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
@@ -95,6 +97,7 @@ lazy val library =
       val excludeSlf4jLog4j12 = ExclusionRule(organization = "org.slf4j", name = "slf4j-log4j12")
       val sparkExclusions = Seq(excludeIvy, excludeMail, excludeSlf4jLog4j12)
       val excludeLogback = ExclusionRule(organization = "ch.qos.logback", name = "logback-classic")
+      val excludeJackson = ExclusionRule(organization = "com.fasterxml.jackson.core")
     }
     val scalaCheck: ModuleID  = "org.scalacheck"    %% "scalacheck"   % Version.scalaCheck
     val scalaTest: ModuleID   = "org.scalatest"     %% "scalatest"    % Version.scalaTest
@@ -130,6 +133,7 @@ lazy val library =
     val kamonZipkin: ModuleID  =  "io.kamon" %% "kamon-zipkin" % Version.kamonReporter excludeAll ExclusionRules.excludeLogback
     val kamonSigar: ModuleID   = "io.kamon"           % "sigar-loader" % Version.kamonSigar
 
+    val bugsnag: ModuleID      = "com.bugsnag"       % "bugsnag"      % Version.bugsnag excludeAll ExclusionRules.excludeJackson
   }
 
 resolvers += "HBPMedical Bintray Repo" at "https://dl.bintray.com/hbpmedical/maven/"

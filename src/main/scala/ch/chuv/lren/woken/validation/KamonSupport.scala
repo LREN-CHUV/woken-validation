@@ -20,6 +20,7 @@ package ch.chuv.lren.woken.validation
 import java.io.File
 
 import com.typesafe.config.Config
+import com.bugsnag.Bugsnag
 import kamon.Kamon
 import kamon.prometheus.PrometheusReporter
 import kamon.sigar.SigarProvisioner
@@ -34,6 +35,8 @@ object KamonSupport {
   private val logger = LoggerFactory.getLogger("WokenValidation")
 
   def startKamonReporters(config: Config): Unit = {
+
+    val bugsnag     = new Bugsnag("c023faf8a616d9f2847f539b6cf241a9")
     val kamonConfig = config.getConfig("kamon")
 
     if (kamonConfig.getBoolean("enabled") || kamonConfig.getBoolean("prometheus.enabled") || kamonConfig
@@ -84,8 +87,8 @@ object KamonSupport {
   }
 
   def stopKamonReporters(): Unit = {
-      SystemMetrics.stopCollecting()
-      Kamon.stopAllReporters()
+    SystemMetrics.stopCollecting()
+    Kamon.stopAllReporters()
   }
 
 }
