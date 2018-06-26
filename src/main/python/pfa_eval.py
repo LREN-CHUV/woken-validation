@@ -15,6 +15,21 @@ from logging import FileHandler, StreamHandler
 log = logging.getLogger('')
 log.addHandler(StreamHandler(sys.stdout))
 
+if os.getenv("PFA_EVALUATOR_BUGSNAG_KEY"):
+
+    import bugsnag
+
+    bugsnag.configure(
+        api_key=os.getenv("PFA_EVALUATOR_BUGSNAG_KEY"),
+        project_root=os.getenv("PFA_EVALUATOR_ROOT")
+    )
+
+    from bugsnag.handlers import BugsnagHandler
+
+    handler = BugsnagHandler()
+    # send only ERROR-level logs and above
+    handler.setLevel(logging.ERROR)
+    log.addHandler(handler)
 
 def load_document(file):
     # Check that the file passed by the user exists

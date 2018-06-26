@@ -31,12 +31,12 @@ import org.slf4j.LoggerFactory
 
 import scala.util.Try
 
-object KamonSupport {
+object MonitoringSupport {
   private val logger = LoggerFactory.getLogger("WokenValidation")
 
-  def startKamonReporters(config: Config): Unit = {
+  def startReporters(config: Config): Unit = {
 
-    val bugsnag     = new Bugsnag("c023faf8a616d9f2847f539b6cf241a9")
+    val bugsnag     = new Bugsnag(config.getString("bugsnag.apiKey"))
     val kamonConfig = config.getConfig("kamon")
 
     if (kamonConfig.getBoolean("enabled") || kamonConfig.getBoolean("prometheus.enabled") || kamonConfig
@@ -86,7 +86,7 @@ object KamonSupport {
     }
   }
 
-  def stopKamonReporters(): Unit = {
+  def stopReporters(): Unit = {
     SystemMetrics.stopCollecting()
     Kamon.stopAllReporters()
   }

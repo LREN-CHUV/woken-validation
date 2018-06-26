@@ -50,7 +50,7 @@ RUN  chmod +x /opt/woken-validation/weaver-agent.sh \
          && /opt/woken-validation/weaver-agent.sh
 
 RUN apk add --update --no-cache python2 python2-dev gfortran build-base py2-pip \
-    && pip2 install numpy titus \
+    && pip2 install numpy titus bugsnag \
     && apk del python2-dev build-base py2-pip
 
 RUN set -ex \
@@ -75,8 +75,12 @@ RUN set -ex \
 	&& apk del .build-deps \
     && rm -rf /usr/src/sigar
 
-COPY src/main/python/pfa_eval.py /pfa_eval.py
+COPY src/main/python/pfa_eval.py /app/pfa/pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
+
+ENV WOKEN_VALIDATION_BUGSNAG_KEY=c023faf8a616d9f2847f539b6cf241a9 \
+  PFA_EVALUATOR_BUGSNAG_KEY=3aa0cd3936adc7a07e086cec12b04e2c \
+  PFA_EVALUATOR_ROOT=/app/pfa
 
 USER woken
 

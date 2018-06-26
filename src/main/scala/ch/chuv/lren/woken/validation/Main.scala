@@ -57,11 +57,12 @@ object Main extends App {
       .withFallback(ConfigFactory.parseResourcesAnySyntax("akka.conf"))
       .withFallback(ConfigFactory.parseResourcesAnySyntax(s"akka-$remotingImpl-remoting.conf"))
       .withFallback(ConfigFactory.parseResourcesAnySyntax("kamon.conf"))
+      .withFallback(ConfigFactory.parseResourcesAnySyntax("bugsnag.conf"))
       .withFallback(ConfigFactory.load())
       .resolve()
   }
 
-  KamonSupport.startKamonReporters(config)
+  MonitoringSupport.startReporters(config)
 
   private val clusterSystemName = config.getString("clustering.cluster.name")
   private val seedNodes         = config.getStringList("akka.cluster.seed-nodes").toList
@@ -99,13 +100,13 @@ object Main extends App {
 
   system.registerOnTermination {
     cluster.leave(cluster.selfAddress)
-    KamonSupport.stopKamonReporters()
+    MonitoringSupport.stopReporters()
   }
 
   cluster.registerOnMemberRemoved {
     logger.info("Exiting...")
     cluster.leave(cluster.selfAddress)
-    KamonSupport.stopKamonReporters()
+    MonitoringSupport.stopReporters()
     system.registerOnTermination(System.exit(0))
     system.terminate()
 
