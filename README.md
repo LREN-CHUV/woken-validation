@@ -12,7 +12,7 @@ It embeds [Apache Spark](http://spark.apache.org/) which provides the numerical 
 
 ```sh
 
- docker run --rm --env [list of environment variables] --link woken hbpmip/woken-validation:2.5.5
+ docker run --rm --env [list of environment variables] --link woken hbpmip/woken-validation:2.5.6
 
 ```
 
