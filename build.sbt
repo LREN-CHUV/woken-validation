@@ -76,7 +76,7 @@ lazy val library =
       val spark          = "2.0.2"
       val wokenMessages = "2.8.1"
 
-      val kamon           = "1.1.2"
+      val kamon           = "1.1.3"
       val kamonAkka       = "1.0.1"
       val kamonAkkaRemote = "1.0.1"
       val kamonAkkaHttp   = "1.1.0"
