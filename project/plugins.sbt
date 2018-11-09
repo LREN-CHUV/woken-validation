@@ -8,7 +8,7 @@ libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.25" // Needed by sbt-git
 libraryDependencies += "org.slf4j" % "slf4j-nop" % "1.7.25" // Needed by sbt-git
 
 // App Packaging
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.6")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.9")
 
 // Dependency Resolution
 addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0")
@@ -16,15 +16,15 @@ addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0")
 // Code Quality
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0") // scalastyle
 
-addSbtPlugin("org.wartremover"   % "sbt-wartremover" % "2.2.1") // Wartremover
+addSbtPlugin("org.wartremover"   % "sbt-wartremover" % "2.3.6") // Wartremover
 
 // Code formatter
 addSbtPlugin("com.lucidchart"    % "sbt-scalafmt"    % "1.15")
 
 // Copyright headers
-addSbtPlugin("de.heikoseeberger" % "sbt-header"      % "4.1.0")
+addSbtPlugin("de.heikoseeberger" % "sbt-header"      % "5.0.0")
 
 // Versioning
-addSbtPlugin("com.typesafe.sbt"  % "sbt-git"         % "0.9.3")
+addSbtPlugin("com.typesafe.sbt"  % "sbt-git"         % "1.0.0")
 
 addSbtPlugin("org.ensime" % "sbt-ensime" % "2.3.0")
