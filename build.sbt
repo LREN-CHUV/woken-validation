@@ -84,7 +84,7 @@ lazy val library =
       val kamonReporter   = "1.0.0"
       val kamonSystemMetrics = "1.0.0"
       val kamonSigar      = "1.6.6-rev002"
-      val bugsnag         = "3.1.6"
+      val bugsnag         = "3.4.1"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
