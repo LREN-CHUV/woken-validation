@@ -8,8 +8,9 @@ ARG BINTRAY_PASS
 ENV BINTRAY_USER=$BINTRAY_USER \
     BINTRAY_PASS=$BINTRAY_PASS
 
-RUN apk add --update --no-cache python2 py2-pip \
-    && pip2 install titus
+RUN apt-get update && apt-get install -y python2 python-pip \
+    && pip2 install titus \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY src/main/python/pfa_eval.py /pfa_eval.py
 
@@ -34,8 +35,6 @@ RUN sbt -mem 1500 test assembly
 
 FROM hbpmip/java-base:11.0.1-0
 
-MAINTAINER Ludovic Claude <ludovic.claude@chuv.ch>
-
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
@@ -43,37 +42,17 @@ ARG VERSION
 COPY docker/run.sh /
 ADD  docker/weaver-agent.sh /opt/woken-validation/
 
-RUN adduser -H -D -u 1000 woken \
-    && apk add --update --no-cache curl
+RUN adduser -H -D -u 1000 woken
 
-RUN  chmod +x /opt/woken-validation/weaver-agent.sh \
+RUN apt-get update && apt-get install -y python2 python-pip curl \
+    && apt-get install -y build-essential gfortran python-dev \
+    && pip2 install numpy==1.15.4 titus==0.8.4 bugsnag==3.4.3 \
+    && apt-get remove -y build-essential gfortran python-dev \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN chmod +x /opt/woken-validation/weaver-agent.sh \
          && /opt/woken-validation/weaver-agent.sh
-
-RUN apk add --update --no-cache python2 python2-dev gfortran build-base py2-pip \
-    && pip2 install numpy titus bugsnag \
-    && apk del python2-dev build-base py2-pip
-
-RUN set -ex \
-	&& apk add -u --no-cache --virtual .build-deps \
-		git gcc libc-dev make cmake libtirpc-dev pax-utils \
-	&& mkdir -p /usr/src \
-	&& cd /usr/src \
-	&& git clone --branch sigar-musl https://github.com/ncopa/sigar.git \
-	&& mkdir sigar/build \
-	&& cd sigar/build \
-	&& CFLAGS="-std=gnu89" cmake .. \
-	&& make -j$(getconf _NPROCESSORS_ONLN) \
-	&& make install \
-	&& runDeps="$( \
-		scanelf --needed --nobanner --recursive /usr/local \
-			| awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-			| sort -u \
-			| xargs -r apk info --installed \
-			| sort -u \
-	)" \
-	&& apk add --virtual .libsigar-rundeps $runDeps \
-	&& apk del .build-deps \
-    && rm -rf /usr/src/sigar
 
 COPY src/main/python/pfa_eval.py /app/pfa/pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
