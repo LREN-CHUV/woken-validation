@@ -71,6 +71,8 @@ class ValidationActor extends Actor with LazyLogging with DefaultJsonProtocol {
   private val complexModels =
     Set("kNN", "naive_bayes", "neural_network", "linear_model", "gradient_boosting")
 
+  //private val pfaProdScript: String = System.getenv().get("PFA_EVALUATOR_ROOT", "/") + "pfa_eval.py"
+
   @SuppressWarnings(Array("org.wartremover.warts.Any", "org.wartremover.warts.TraversableOps"))
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 

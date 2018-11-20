@@ -63,10 +63,10 @@ lazy val library =
     object Version {
       val scalaCheck     = "1.14.0"
       val scalaTest      = "3.0.5"
-      val akka           = "2.5.12"
+      val akka               = "2.5.18"
       val akkaHttp       = "10.1.5"
       val akkaHttpCors   = "0.3.0"
-      val sprayJson      = "1.3.4"
+      val sprayJson      = "1.3.5"
       val cats           = "1.4.0"
       val slf4j          = "1.7.25"
       val log4j          = "2.11.0"
@@ -75,7 +75,7 @@ lazy val library =
       val hadrian        = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
       val spark          = "2.0.2"
-      val wokenMessages = "2.8.2"
+      val wokenMessages  = "2.8.3"
 
       val kamon           = "1.1.3"
       val kamonAkka       = "1.0.1"
@@ -196,7 +196,7 @@ lazy val scalafmtSettings =
   Seq(
     scalafmtOnCompile := true,
     scalafmtOnCompile.in(Sbt) := false,
-    scalafmtVersion := "1.4.0"
+    scalafmtVersion := "1.5.1"
   )
 
         assemblyMergeStrategy in assembly := {
