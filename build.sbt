@@ -65,7 +65,7 @@ lazy val library =
       val scalaTest      = "3.0.5"
       val akka           = "2.5.18"
       val akkaHttp       = "10.1.5"
-      val akkaHttpCors   = "0.3.0"
+      val akkaHttpCors   = "0.3.1"
       val sprayJson      = "1.3.5"
       val cats           = "1.4.0"
       val slf4j          = "1.7.25"
@@ -84,7 +84,7 @@ lazy val library =
       val kamonReporter   = "1.0.0"
       val kamonSystemMetrics = "1.0.0"
       val kamonSigar      = "1.6.6-rev002"
-      val bugsnag         = "3.1.6"
+      val bugsnag         = "3.4.1"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
