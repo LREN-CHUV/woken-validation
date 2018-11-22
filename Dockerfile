@@ -40,9 +40,10 @@ ARG VCS_REF
 ARG VERSION
 
 COPY docker/run.sh /
-ADD  docker/weaver-agent.sh /opt/woken-validation/
+COPY docker/weaver-agent.sh /opt/woken-validation/
 
-RUN adduser -H -D -u 1000 woken
+RUN addgroup woken \
+    && adduser --system --disabled-password --uid 1000 --ingroup woken woken
 
 RUN apt-get update && apt-get install -y python2 python-pip curl \
     && apt-get install -y build-essential gfortran python-dev \
@@ -52,7 +53,7 @@ RUN apt-get update && apt-get install -y python2 python-pip curl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN chmod +x /opt/woken-validation/weaver-agent.sh \
-         && /opt/woken-validation/weaver-agent.sh
+    && /opt/woken-validation/weaver-agent.sh
 
 COPY src/main/python/pfa_eval.py /app/pfa/pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
