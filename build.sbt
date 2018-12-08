@@ -18,10 +18,19 @@ lazy val `woken-validation` =
           library.akkaRemote,
           library.akkaCluster,
           library.akkaClusterTools,
+          library.akkaStream,
           library.akkaSlf4j,
           library.akkaHttp,
           library.akkaHttpCors,
           library.akkaHttpJson,
+          library.kamon,
+          library.kamonAkka,
+          library.kamonAkkaHttp,
+          library.kamonAkkaRemote,
+          library.kamonPrometheus,
+          library.kamonZipkin,
+          library.kamonSystemMetrics,
+          library.kamonSigar,
           library.sprayJson,
           library.slf4j,
           library.jclOverSlf4j,
@@ -33,14 +42,6 @@ lazy val `woken-validation` =
           library.sparkMllib,
           library.sparkSql,
           library.wokenMessages,
-          library.kamon,
-          library.kamonAkka,
-          library.kamonAkkaHttp,
-          library.kamonAkkaRemote,
-          library.kamonPrometheus,
-          library.kamonZipkin,
-          library.kamonSystemMetrics,
-          library.kamonSigar,
           library.bugsnag,
           library.scalaCheck   % Test,
           library.scalaTest    % Test,
@@ -68,6 +69,13 @@ lazy val library =
       val akkaHttpCors   = "0.3.1"
       val sprayJson      = "1.3.5"
       val cats           = "1.4.0"
+      val kamon           = "1.1.3"
+      val kamonAkka       = "1.0.1"
+      val kamonAkkaRemote = "1.0.1"
+      val kamonAkkaHttp   = "1.1.0"
+      val kamonReporter   = "1.0.0"
+      val kamonSystemMetrics = "1.0.0"
+      val kamonSigar      = "1.6.6-rev002"
       val slf4j          = "1.7.25"
       val log4j          = "2.11.0"
       val disruptor      = "3.4.2"
@@ -77,14 +85,13 @@ lazy val library =
       val spark          = "2.0.2"
       val wokenMessages  = "2.8.3"
 
-      val kamon           = "1.1.3"
+      val kamon           = "1.1.2"
       val kamonAkka       = "1.0.1"
       val kamonAkkaRemote = "1.0.1"
       val kamonAkkaHttp   = "1.1.0"
       val kamonReporter   = "1.0.0"
       val kamonSystemMetrics = "1.0.0"
       val kamonSigar      = "1.6.6-rev002"
-      val bugsnag         = "3.4.1"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
@@ -99,29 +106,17 @@ lazy val library =
       val excludeLogback = ExclusionRule(organization = "ch.qos.logback", name = "logback-classic")
       val excludeJackson = ExclusionRule(organization = "com.fasterxml.jackson.core")
     }
-    val scalaCheck: ModuleID  = "org.scalacheck"    %% "scalacheck"   % Version.scalaCheck
-    val scalaTest: ModuleID   = "org.scalatest"     %% "scalatest"    % Version.scalaTest
-    val akkaActor: ModuleID   = "com.typesafe.akka" %% "akka-actor"   % Version.akka
-    val akkaRemote: ModuleID  = "com.typesafe.akka" %% "akka-remote"  % Version.akka
-    val akkaCluster: ModuleID = "com.typesafe.akka" %% "akka-cluster" % Version.akka
+    val scalaCheck: ModuleID   = "org.scalacheck"    %% "scalacheck"   % Version.scalaCheck
+    val scalaTest: ModuleID    = "org.scalatest"     %% "scalatest"    % Version.scalaTest
+    val akkaActor: ModuleID    = "com.typesafe.akka" %% "akka-actor"   % Version.akka
+    val akkaRemote: ModuleID   = "com.typesafe.akka" %% "akka-remote"  % Version.akka
+    val akkaCluster: ModuleID  = "com.typesafe.akka" %% "akka-cluster" % Version.akka
     val akkaClusterTools: ModuleID = "com.typesafe.akka" %% "akka-cluster-tools" % Version.akka
-    val akkaSlf4j: ModuleID   = "com.typesafe.akka" %% "akka-slf4j"   % Version.akka
-    val akkaTestkit: ModuleID = "com.typesafe.akka" %% "akka-testkit" % Version.akka
-    val akkaHttp: ModuleID = "com.typesafe.akka" %% "akka-http" % Version.akkaHttp
+    val akkaSlf4j: ModuleID    = "com.typesafe.akka" %% "akka-slf4j"   % Version.akka
+    val akkaTestkit: ModuleID  = "com.typesafe.akka" %% "akka-testkit" % Version.akka
+    val akkaHttp: ModuleID     = "com.typesafe.akka" %% "akka-http" % Version.akkaHttp
     val akkaHttpJson: ModuleID = "com.typesafe.akka" %% "akka-http-spray-json" % Version.akkaHttp
     val akkaHttpCors: ModuleID = "ch.megard"         %% "akka-http-cors" % Version.akkaHttpCors
-    val sprayJson: ModuleID   = "io.spray"          %% "spray-json"   % Version.sprayJson
-    val slf4j: ModuleID       = "org.slf4j"          % "slf4j-api"    % Version.slf4j
-    val jclOverSlf4j: ModuleID = "org.slf4j"         % "jcl-over-slf4j" % Version.slf4j
-    val log4jSlf4j: ModuleID  = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
-    val disruptor: ModuleID   = "com.lmax"           % "disruptor"    % Version.disruptor
-    val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging" % Version.scalaLogging
-    val catsCore: ModuleID    = "org.typelevel"     %% "cats-core"    % Version.cats
-    val hadrian: ModuleID     = "com.opendatagroup" % "hadrian"       % Version.hadrian
-    // spark 2.2.x
-    val sparkMllib: ModuleID  = "org.apache.spark"  %% "spark-mllib"  % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
-    val sparkSql: ModuleID    = "org.apache.spark"  %% "spark-sql"    % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
-    val wokenMessages: ModuleID = "ch.chuv.lren.woken" %% "woken-messages" % Version.wokenMessages
 
     // Kamon
     val kamon: ModuleID        = "io.kamon" %% "kamon-core" % Version.kamon excludeAll ExclusionRules.excludeLogback
@@ -133,7 +128,19 @@ lazy val library =
     val kamonZipkin: ModuleID  =  "io.kamon" %% "kamon-zipkin" % Version.kamonReporter excludeAll ExclusionRules.excludeLogback
     val kamonSigar: ModuleID   = "io.kamon"           % "sigar-loader" % Version.kamonSigar
 
-    val bugsnag: ModuleID      = "com.bugsnag"       % "bugsnag"      % Version.bugsnag excludeAll ExclusionRules.excludeJackson
+    val sprayJson: ModuleID    = "io.spray"          %% "spray-json"   % Version.sprayJson
+    val slf4j: ModuleID        = "org.slf4j"          % "slf4j-api"    % Version.slf4j
+    val jclOverSlf4j: ModuleID = "org.slf4j"         % "jcl-over-slf4j" % Version.slf4j
+    val log4jSlf4j: ModuleID   = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
+    val disruptor: ModuleID    = "com.lmax"           % "disruptor"    % Version.disruptor
+    val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging" % Version.scalaLogging
+    val catsCore: ModuleID     = "org.typelevel"     %% "cats-core"    % Version.cats
+    val hadrian: ModuleID      = "com.opendatagroup" % "hadrian"       % Version.hadrian
+    // spark 2.2.x
+    val sparkMllib: ModuleID   = "org.apache.spark"  %% "spark-mllib"  % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
+    val sparkSql: ModuleID     = "org.apache.spark"  %% "spark-sql"    % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
+    val wokenMessages: ModuleID = "ch.chuv.lren.woken" %% "woken-messages" % Version.wokenMessages
+
   }
 
 resolvers += "HBPMedical Bintray Repo" at "https://dl.bintray.com/hbpmedical/maven/"
