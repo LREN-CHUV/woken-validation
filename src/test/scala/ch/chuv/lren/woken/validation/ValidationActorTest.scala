@@ -49,7 +49,7 @@ class ValidationActorTest
         .map(_.parseJson)
       val labels = List("10.0", "20.0", "20.0").map(JsString.apply)
 
-      val validationRef = system.actorOf(Props[ValidationActor])
+      val validationRef = system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py"))
 
       validationRef ! ValidationQuery(
         0,
@@ -88,7 +88,7 @@ class ValidationActorTest
       ).map(_.parseJson)
       val labels = List(25.6, 22.2, 22.6).map(JsNumber.apply)
 
-      val validationRef = system.actorOf(Props[ValidationActor])
+      val validationRef = system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py"))
 
       validationRef ! ValidationQuery(
         0,
@@ -127,7 +127,7 @@ class ValidationActorTest
       ).map(_.parseJson)
       val labels = List("AD", "AD", "AD").map(JsString.apply)
 
-      val validationRef = system.actorOf(Props[ValidationActor])
+      val validationRef = system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py"))
 
       validationRef ! ValidationQuery(
         0,
@@ -166,7 +166,7 @@ class ValidationActorTest
       ).map(_.parseJson)
       val labels = List("AD", "AD", "AD").map(JsString.apply)
 
-      val validationRef = system.actorOf(Props[ValidationActor])
+      val validationRef = system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py"))
 
       validationRef ! ValidationQuery(
         0,

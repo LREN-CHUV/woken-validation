@@ -38,8 +38,8 @@ import scala.sys.process._
 
 object ValidationActor extends LazyLogging {
 
-  def props: Props =
-    Props(new ValidationActor())
+  def props(pfaEvaluatorScript: String): Props =
+    Props(new ValidationActor(pfaEvaluatorScript))
 
   def roundRobinPoolProps(config: Config): Props = {
 
@@ -57,21 +57,24 @@ object ValidationActor extends LazyLogging {
           Restart
       }
 
+    val pfaEvaluatorScript = config.getString("validation.pfaEvaluatorScript")
+
     RoundRobinPool(
       1,
       resizer = Some(validationResizer),
       supervisorStrategy = validationSupervisorStrategy
-    ).props(ValidationActor.props)
+    ).props(ValidationActor.props(pfaEvaluatorScript))
   }
 
 }
 
-class ValidationActor extends Actor with LazyLogging with DefaultJsonProtocol {
+class ValidationActor(val pfaEvaluatorScript: String)
+    extends Actor
+    with LazyLogging
+    with DefaultJsonProtocol {
 
   private val complexModels =
     Set("kNN", "naive_bayes", "neural_network", "linear_model", "gradient_boosting")
-
-  //private val pfaProdScript: String = System.getenv().get("PFA_EVALUATOR_ROOT", "/") + "pfa_eval.py"
 
   @SuppressWarnings(Array("org.wartremover.warts.Any", "org.wartremover.warts.TraversableOps"))
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
@@ -105,10 +108,7 @@ class ValidationActor extends Actor with LazyLogging with DefaultJsonProtocol {
             val processOutputFile = File.createTempFile(modelName, "-out")
             processOutputFile.deleteOnExit()
 
-            val pfaEvalScript =
-              if (new File("/pfa_eval.py").exists()) "/pfa_eval.py"
-              else "src/main/python/pfa_eval.py"
-            val cmd = Seq(pfaEvalScript,
+            val cmd = Seq(pfaEvaluatorScript,
                           modelFile.toPath.toString,
                           dataFile.toPath.toString,
                           resultsFile.toPath.toString)
