@@ -17,17 +17,19 @@
 
 package ch.chuv.lren.woken.validation
 
-import akka.actor.{ ActorSystem, DeadLetter }
+import akka.actor.{ActorSystem, DeadLetter}
 import akka.cluster.Cluster
-import akka.cluster.pubsub.{ DistributedPubSub, DistributedPubSubMediator }
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.{ HttpApp, Route }
+import akka.cluster.pubsub.{DistributedPubSub, DistributedPubSubMediator}
+import akka.http.scaladsl.model.{StatusCodes, Uri}
+import akka.http.scaladsl.server.{HttpApp, Route}
+import akka.management.cluster.{ClusterHealthCheck, ClusterHttpManagementRoutes}
+import akka.management.http.ManagementRouteProviderSettings
 import akka.stream.ActorMaterializer
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.{ Await, ExecutionContextExecutor }
+import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import scala.language.postfixOps
@@ -146,7 +148,15 @@ object Main extends App {
       }
     }
 
-    override def routes: Route = cors()(healthRoute ~ readinessRoute)
+    val clusterRoutes: Route = ClusterHttpManagementRoutes(cluster)
+
+    val healthCheckRoutes = pathPrefix("cluster") {
+      new ClusterHealthCheck(cluster.system).routes(new ManagementRouteProviderSettings {
+        override def selfBaseUri: Uri = Uri./
+      })
+    }
+
+    override def routes: Route = cors()(healthRoute ~ readinessRoute ~ clusterRoutes ~ healthCheckRoutes)
 
   }
 

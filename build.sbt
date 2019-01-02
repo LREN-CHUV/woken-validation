@@ -23,6 +23,8 @@ lazy val `woken-validation` =
           library.akkaHttp,
           library.akkaHttpCors,
           library.akkaHttpJson,
+          library.akkaManagementBase,
+          library.akkaManagementClusterHttp,
           library.kamon,
           library.kamonAkka,
           library.kamonAkkaHttp,
@@ -67,6 +69,7 @@ lazy val library =
       val akka            = "2.5.19"
       val akkaHttp        = "10.1.5"
       val akkaHttpCors    = "0.3.1"
+      val akkaManagement  = "0.20.0"
       val kamon           = "1.1.3"
       val kamonAkka       = "1.1.2"
       val kamonAkkaRemote = "1.1.0"
@@ -99,6 +102,8 @@ lazy val library =
       val sparkExclusions = Seq(excludeIvy, excludeMail, excludeSlf4jLog4j12)
       val excludeLogback = ExclusionRule(organization = "ch.qos.logback", name = "logback-classic")
       val excludeJackson = ExclusionRule(organization = "com.fasterxml.jackson.core")
+      val excludeAkkaClusterSharding = ExclusionRule(organization = "com.typesafe.akka", name = "akka-cluster-sharding_2.11")
+      val excludeAkkaDistributedData = ExclusionRule(organization = "com.typesafe.akka", name = "akka-distributed-data")
     }
     val scalaCheck: ModuleID   = "org.scalacheck"    %% "scalacheck"   % Version.scalaCheck
     val scalaTest: ModuleID    = "org.scalatest"     %% "scalatest"    % Version.scalaTest
@@ -112,6 +117,8 @@ lazy val library =
     val akkaHttp: ModuleID     = "com.typesafe.akka" %% "akka-http" % Version.akkaHttp
     val akkaHttpJson: ModuleID = "com.typesafe.akka" %% "akka-http-spray-json" % Version.akkaHttp
     val akkaHttpCors: ModuleID = "ch.megard"         %% "akka-http-cors" % Version.akkaHttpCors
+    val akkaManagementBase: ModuleID = "com.lightbend.akka.management" %% "akka-management" % Version.akkaManagement
+    val akkaManagementClusterHttp: ModuleID =  "com.lightbend.akka.management" %% "akka-management-cluster-http" % Version.akkaManagement excludeAll ExclusionRules.excludeAkkaClusterSharding
 
     // Kamon
     val kamon: ModuleID        = "io.kamon" %% "kamon-core" % Version.kamon excludeAll ExclusionRules.excludeLogback
@@ -136,7 +143,7 @@ lazy val library =
     val sparkMllib: ModuleID   = "org.apache.spark"  %% "spark-mllib"  % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
     val sparkSql: ModuleID     = "org.apache.spark"  %% "spark-sql"    % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
     val wokenMessages: ModuleID = "ch.chuv.lren.woken" %% "woken-messages" % Version.wokenMessages
-
+    
   }
 
 resolvers += "HBPMedical Bintray Repo" at "https://dl.bintray.com/hbpmedical/maven/"
