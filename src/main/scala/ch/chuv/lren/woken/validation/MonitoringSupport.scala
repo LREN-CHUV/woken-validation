@@ -44,7 +44,7 @@ object MonitoringSupport {
           .getBoolean("zipkin.enabled")) {
 
       logger.info("Kamon configuration:")
-      logger.info(config.getConfig("kamon").toString)
+      logger.info(kamonConfig.toString)
       logger.info(s"Start monitoring...")
 
       Kamon.reconfigure(config)
