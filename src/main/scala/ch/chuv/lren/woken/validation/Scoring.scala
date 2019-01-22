@@ -257,6 +257,7 @@ trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring with
 
   private[validation] def gen: (MulticlassMetrics, Map[String, Double]) => S
 
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   override def compute(algorithmOutput: NonEmptyList[JsValue],
                        label: NonEmptyList[JsValue],
                        session: SparkSession): S = {
@@ -340,6 +341,7 @@ case class RegressionScoreHolder(metrics: RegressionMetrics) extends ScoreHolder
 
 object RegressionScoring extends Scoring with LazyLogging {
 
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   override def compute(algorithmOutput: NonEmptyList[JsValue],
                        label: NonEmptyList[JsValue],
                        session: SparkSession): RegressionScoreHolder = {

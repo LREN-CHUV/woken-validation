@@ -26,6 +26,7 @@ object DeadLetterMonitorActor {
 
 class DeadLetterMonitorActor extends Actor with LazyLogging {
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def receive: PartialFunction[Any, Unit] = {
     case d: DeadLetter =>
       logger.error(s"Saw dead letter $d")

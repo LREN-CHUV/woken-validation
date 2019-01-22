@@ -17,11 +17,13 @@
 
 package ch.chuv.lren.woken.validation
 
-import akka.actor.{ ActorSystem, Props }
+import akka.actor.ActorSystem
 import akka.testkit.{ ImplicitSender, TestKit }
+import ch.chuv.lren.woken.errors.ErrorReporter
 import ch.chuv.lren.woken.messages.validation.{ ValidationQuery, ValidationResult }
 import ch.chuv.lren.woken.messages.variables.{ VariableMetaData, VariableType }
 import ch.chuv.lren.woken.validation.util.JsonUtils
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 import scala.concurrent.duration._
@@ -34,6 +36,7 @@ class ValidationActorTest
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll
+    with MockFactory
     with JsonUtils {
 
   override def afterAll {
@@ -49,7 +52,8 @@ class ValidationActorTest
         .map(_.parseJson)
       val labels = List("10.0", "20.0", "20.0").map(JsString.apply)
 
-      val validationRef = system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py"))
+      val validationRef =
+        system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py", mock[ErrorReporter]))
 
       validationRef ! ValidationQuery(
         0,
@@ -88,7 +92,8 @@ class ValidationActorTest
       ).map(_.parseJson)
       val labels = List(25.6, 22.2, 22.6).map(JsNumber.apply)
 
-      val validationRef = system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py"))
+      val validationRef =
+        system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py", mock[ErrorReporter]))
 
       validationRef ! ValidationQuery(
         0,
@@ -127,7 +132,8 @@ class ValidationActorTest
       ).map(_.parseJson)
       val labels = List("AD", "AD", "AD").map(JsString.apply)
 
-      val validationRef = system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py"))
+      val validationRef =
+        system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py", mock[ErrorReporter]))
 
       validationRef ! ValidationQuery(
         0,
@@ -166,7 +172,8 @@ class ValidationActorTest
       ).map(_.parseJson)
       val labels = List("AD", "AD", "AD").map(JsString.apply)
 
-      val validationRef = system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py"))
+      val validationRef =
+        system.actorOf(ValidationActor.props("src/main/python/pfa_eval.py", mock[ErrorReporter]))
 
       validationRef ! ValidationQuery(
         0,

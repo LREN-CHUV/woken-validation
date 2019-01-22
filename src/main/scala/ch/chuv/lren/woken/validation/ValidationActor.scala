@@ -23,6 +23,7 @@ import akka.actor.SupervisorStrategy.Restart
 import akka.actor.{ Actor, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
+import ch.chuv.lren.woken.errors.{ ErrorReporter, ValidationError }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import com.typesafe.config.Config
 import ch.chuv.lren.woken.messages.validation._
@@ -38,10 +39,10 @@ import scala.sys.process._
 
 object ValidationActor extends LazyLogging {
 
-  def props(pfaEvaluatorScript: String): Props =
-    Props(new ValidationActor(pfaEvaluatorScript))
+  def props(pfaEvaluatorScript: String, errorReporter: ErrorReporter): Props =
+    Props(new ValidationActor(pfaEvaluatorScript, errorReporter))
 
-  def roundRobinPoolProps(config: Config): Props = {
+  def roundRobinPoolProps(config: Config, errorReporter: ErrorReporter): Props = {
 
     val validationResizer = OptimalSizeExploringResizer(
       config
@@ -63,12 +64,12 @@ object ValidationActor extends LazyLogging {
       1,
       resizer = Some(validationResizer),
       supervisorStrategy = validationSupervisorStrategy
-    ).props(ValidationActor.props(pfaEvaluatorScript))
+    ).props(ValidationActor.props(pfaEvaluatorScript, errorReporter))
   }
 
 }
 
-class ValidationActor(val pfaEvaluatorScript: String)
+class ValidationActor(val pfaEvaluatorScript: String, errorReporter: ErrorReporter)
     extends Actor
     with LazyLogging
     with DefaultJsonProtocol {
@@ -76,14 +77,19 @@ class ValidationActor(val pfaEvaluatorScript: String)
   private val complexModels =
     Set("kNN", "naive_bayes", "neural_network", "linear_model", "gradient_boosting")
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any", "org.wartremover.warts.TraversableOps"))
+  @SuppressWarnings(
+    Array("org.wartremover.warts.Any",
+          "org.wartremover.warts.NonUnitStatements",
+          "org.wartremover.warts.AsInstanceOf",
+          "org.wartremover.warts.TraversableOps")
+  )
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
-    case ValidationQuery(fold, model, data, varInfo) =>
+    case query @ ValidationQuery(fold, model, data, varInfo) =>
       logger.info("Received validation work!")
       // Reconstruct model using hadrian and validate over the provided data
       val replyTo = sender()
-      Try {
+      Try[Unit] {
 
         val modelNameO = model.fields.get("name").map(_.convertTo[String])
         modelNameO match {
@@ -132,7 +138,12 @@ class ValidationActor(val pfaEvaluatorScript: String)
               logger.error(
                 s"Error while validating fold $fold, variable ${varInfo.code}: $msg \nModel was: \n$model"
               )
-              replyTo ! ValidationResult(fold, varInfo, Left(msg))
+              val result = ValidationResult(fold, varInfo, Left(msg))
+              errorReporter.report(
+                new Exception(s"Error while validating fold $fold, variable ${varInfo.code}"),
+                ValidationError(query, Some(result))
+              )
+              replyTo ! result
             }
 
             processLogger.close()
@@ -159,13 +170,15 @@ class ValidationActor(val pfaEvaluatorScript: String)
             replyTo ! ValidationResult(fold, varInfo, Right(outputData))
         }
 
-      }.recover {
+      }.recover[Unit] {
         case e: Exception =>
           logger.error(
             s"Error while validating fold $fold, variable ${varInfo.code}: $e \nModel was: \n$model",
             e
           )
-          replyTo ! ValidationResult(fold, varInfo, Left(e.toString))
+          val result = ValidationResult(fold, varInfo, Left(e.toString))
+          errorReporter.report(e, ValidationError(query, Some(result)))
+          replyTo ! result
       }
 
     case unhandled => logger.error(s"Work not recognized by validation actor: $unhandled")

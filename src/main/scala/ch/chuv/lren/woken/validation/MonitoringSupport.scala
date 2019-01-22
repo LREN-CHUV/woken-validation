@@ -20,7 +20,6 @@ package ch.chuv.lren.woken.validation
 import java.io.File
 
 import com.typesafe.config.Config
-import com.bugsnag.Bugsnag
 import kamon.Kamon
 import kamon.prometheus.PrometheusReporter
 import kamon.sigar.SigarProvisioner
@@ -29,14 +28,16 @@ import kamon.zipkin.ZipkinReporter
 import org.hyperic.sigar.{ Sigar, SigarLoader }
 import org.slf4j.LoggerFactory
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.util.Try
 
 object MonitoringSupport {
   private val logger = LoggerFactory.getLogger("WokenValidation")
 
+  @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   def startReporters(config: Config): Unit = {
 
-    val bugsnag     = new Bugsnag(config.getString("bugsnag.apiKey"))
     val kamonConfig = config.getConfig("kamon")
 
     if (kamonConfig.getBoolean("enabled") || kamonConfig.getBoolean("prometheus.enabled") || kamonConfig
@@ -57,7 +58,7 @@ object MonitoringSupport {
           logger.info("Sigar loaded.")
         }
 
-        Try(
+        Try[Unit](
           SigarProvisioner.provision(
             new File(System.getProperty("user.home") + File.separator + ".native")
           )
@@ -88,7 +89,7 @@ object MonitoringSupport {
 
   def stopReporters(): Unit = {
     SystemMetrics.stopCollecting()
-    Kamon.stopAllReporters()
+    Await.result(Kamon.stopAllReporters(), 30.seconds)
   }
 
 }

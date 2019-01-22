@@ -1,6 +1,8 @@
 
 # Changelog
 
+* Add Akka management
+
 ## 2.2.0 - 2018-02-16
 
 * Docker image contains the configuration of the application. Environment variables can be used to tune the configuration

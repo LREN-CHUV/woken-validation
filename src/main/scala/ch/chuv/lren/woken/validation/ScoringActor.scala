@@ -21,6 +21,7 @@ import akka.actor.SupervisorStrategy.Restart
 import akka.actor.{ Actor, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
+import ch.chuv.lren.woken.errors.{ ErrorReporter, ScoringError }
 import com.typesafe.config.Config
 import ch.chuv.lren.woken.messages.validation.{ Score, ScoringQuery, ScoringResult }
 import com.typesafe.scalalogging.LazyLogging
@@ -31,10 +32,10 @@ import scala.language.postfixOps
 
 object ScoringActor extends LazyLogging {
 
-  def props: Props =
-    Props(new ScoringActor())
+  def props(errorReporter: ErrorReporter): Props =
+    Props(new ScoringActor(errorReporter))
 
-  def roundRobinPoolProps(config: Config): Props = {
+  def roundRobinPoolProps(config: Config, errorReporter: ErrorReporter): Props = {
     val scoringResizer = OptimalSizeExploringResizer(
       config
         .getConfig("scoring.resizer")
@@ -53,17 +54,17 @@ object ScoringActor extends LazyLogging {
       1,
       resizer = Some(scoringResizer),
       supervisorStrategy = scoringSupervisorStrategy
-    ).props(ScoringActor.props)
+    ).props(ScoringActor.props(errorReporter))
   }
 
 }
 
-class ScoringActor extends Actor with LazyLogging {
+class ScoringActor(errorReporter: ErrorReporter) extends Actor with LazyLogging {
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
-    case ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
+    case query @ ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
       logger.info(
         s"Received scoring work for variable ${targetMetaData.label} of type ${targetMetaData.`type`}"
       )
@@ -77,7 +78,9 @@ class ScoringActor extends Actor with LazyLogging {
           replyTo ! ScoringResult(Right(score))
         case Failure(e) =>
           logger.error(e.toString, e)
-          replyTo ! ScoringResult(Left(e.toString))
+          val result = ScoringResult(Left(e.toString))
+          errorReporter.report(e, ScoringError(query, Some(result)))
+          replyTo ! result
       }
 
     case unhandled => logger.error(s"Work not recognized by scoring actor: $unhandled")
