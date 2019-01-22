@@ -32,17 +32,10 @@ lazy val `woken-validation` =
           library.kamonSystemMetrics,
           library.kamonSigar,
           library.sprayJson,
-          library.slf4j,
-          library.jclOverSlf4j,
-          library.log4jSlf4j,
-          library.disruptor,
-          library.scalaLogging,
-          library.catsCore,
           library.hadrian,
           library.sparkMllib,
           library.sparkSql,
           library.wokenMessages,
-          library.bugsnag,
           library.scalaCheck   % Test,
           library.scalaTest    % Test,
           library.akkaTestkit  % Test
@@ -75,17 +68,12 @@ lazy val library =
       val kamonReporter   = "1.0.0"
       val kamonSystemMetrics = "1.0.0"
       val kamonSigar      = "1.6.6-rev002"
-      val bugsnag         = "3.4.1"
       val sprayJson       = "1.3.5"
-      val slf4j           = "1.7.25"
-      val log4j           = "2.11.1"
-      val disruptor       = "3.4.2"
-      val scalaLogging    = "3.9.0"
       val cats            = "1.5.0"
       val hadrian         = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
       val spark           = "2.0.2"
-      val wokenMessages   = "2.8.4"
+      val wokenMessages   = "2.9.1"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
@@ -122,20 +110,14 @@ lazy val library =
     val kamonPrometheus: ModuleID = "io.kamon" %% "kamon-prometheus" % Version.kamonPrometheus excludeAll ExclusionRules.excludeLogback
     val kamonZipkin: ModuleID  =  "io.kamon" %% "kamon-zipkin" % Version.kamonReporter excludeAll ExclusionRules.excludeLogback
     val kamonSigar: ModuleID   = "io.kamon"           % "sigar-loader" % Version.kamonSigar
-    val bugsnag: ModuleID      = "com.bugsnag"       % "bugsnag"       % Version.bugsnag excludeAll ExclusionRules.excludeJackson
 
     val sprayJson: ModuleID    = "io.spray"          %% "spray-json"   % Version.sprayJson
-    val slf4j: ModuleID        = "org.slf4j"          % "slf4j-api"    % Version.slf4j
-    val jclOverSlf4j: ModuleID = "org.slf4j"         % "jcl-over-slf4j" % Version.slf4j
-    val log4jSlf4j: ModuleID   = "org.apache.logging.log4j" % "log4j-slf4j-impl" % Version.log4j
-    val disruptor: ModuleID    = "com.lmax"           % "disruptor"    % Version.disruptor
-    val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging" % Version.scalaLogging
     val catsCore: ModuleID     = "org.typelevel"     %% "cats-core"    % Version.cats
     val hadrian: ModuleID      = "com.opendatagroup" % "hadrian"       % Version.hadrian
     // spark 2.2.x
     val sparkMllib: ModuleID   = "org.apache.spark"  %% "spark-mllib"  % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
     val sparkSql: ModuleID     = "org.apache.spark"  %% "spark-sql"    % Version.spark excludeAll(ExclusionRules.sparkExclusions :_*)
-    val wokenMessages: ModuleID = "ch.chuv.lren.woken" %% "woken-messages" % Version.wokenMessages
+    val wokenMessages: ModuleID = "ch.chuv.lren.woken" %% "woken-messages" % Version.wokenMessages excludeAll ExclusionRules.excludeJackson
 
   }
 
