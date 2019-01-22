@@ -43,8 +43,8 @@ object MonitoringSupport {
     if (kamonConfig.getBoolean("enabled") || kamonConfig.getBoolean("prometheus.enabled") || kamonConfig
           .getBoolean("zipkin.enabled")) {
 
-      logger.info("Kamon configuration:")
-      logger.info(kamonConfig.toString)
+      logger.debug("Kamon configuration:")
+      logger.debug(kamonConfig.toString)
       logger.info(s"Start monitoring...")
 
       Kamon.reconfigure(config)

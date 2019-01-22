@@ -22,6 +22,7 @@ import akka.actor.{ Actor, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import ch.chuv.lren.woken.errors.{ ErrorReporter, ScoringError }
+import ch.chuv.lren.woken.messages.{ Ping, Pong }
 import com.typesafe.config.Config
 import ch.chuv.lren.woken.messages.validation.{ Score, ScoringQuery, ScoringResult }
 import com.typesafe.scalalogging.LazyLogging
@@ -63,6 +64,9 @@ class ScoringActor(errorReporter: ErrorReporter) extends Actor with LazyLogging 
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def receive: PartialFunction[Any, Unit] = LoggingReceive {
+
+    // For health checks in the cluster
+    case Ping(None) | Ping(Some("scoring")) => sender() ! Pong(Set("scoring"))
 
     case query @ ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
       logger.info(

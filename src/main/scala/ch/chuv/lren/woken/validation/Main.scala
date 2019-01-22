@@ -25,7 +25,7 @@ import akka.http.scaladsl.server.{ HttpApp, Route }
 import akka.management.cluster.{ ClusterHealthCheck, ClusterHttpManagementRoutes }
 import akka.management.http.ManagementRouteProviderSettings
 import akka.stream.ActorMaterializer
-import ch.chuv.lren.woken.errors.BugsnagErrorReporter
+import ch.chuv.lren.woken.errors._
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.slf4j.LoggerFactory
@@ -60,11 +60,11 @@ object Main extends App {
       .withFallback(ConfigFactory.parseResourcesAnySyntax("akka.conf"))
       .withFallback(ConfigFactory.parseResourcesAnySyntax(s"akka-$remotingImpl-remoting.conf"))
       .withFallback(ConfigFactory.parseResourcesAnySyntax("kamon.conf"))
-      .withFallback(ConfigFactory.parseResourcesAnySyntax("bugsnag.conf"))
       .withFallback(ConfigFactory.load())
       .resolve()
   }
 
+  reportErrorsToBugsnag()
   MonitoringSupport.startReporters(config)
 
   private val clusterSystemName = config.getString("clustering.cluster.name")

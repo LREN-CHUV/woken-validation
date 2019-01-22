@@ -24,6 +24,7 @@ import akka.actor.{ Actor, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
 import ch.chuv.lren.woken.errors.{ ErrorReporter, ValidationError }
+import ch.chuv.lren.woken.messages.{ Ping, Pong }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import com.typesafe.config.Config
 import ch.chuv.lren.woken.messages.validation._
@@ -84,6 +85,9 @@ class ValidationActor(val pfaEvaluatorScript: String, errorReporter: ErrorReport
           "org.wartremover.warts.TraversableOps")
   )
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
+
+    // For health checks in the cluster
+    case Ping(None) | Ping(Some("validation")) => sender() ! Pong(Set("validation"))
 
     case query @ ValidationQuery(fold, model, data, varInfo) =>
       logger.info("Received validation work!")
