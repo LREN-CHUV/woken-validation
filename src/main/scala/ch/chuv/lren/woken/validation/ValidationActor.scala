@@ -87,7 +87,12 @@ class ValidationActor(val pfaEvaluatorScript: String, errorReporter: ErrorReport
   def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
     // For health checks in the cluster
-    case Ping(None) | Ping(Some("validation")) => sender() ! Pong(Set("validation"))
+    case Ping(role) if role.isEmpty || role.contains("validation") =>
+      logger.info("Ping received")
+      sender() ! Pong(Set("validation"))
+    case p: Ping =>
+      logger.warn("Unhandled ping received")
+      sender() ! s"Ping message $p does not match ValidationActor"
 
     case query @ ValidationQuery(fold, model, data, varInfo) =>
       logger.info("Received validation work!")

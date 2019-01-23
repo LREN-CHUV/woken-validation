@@ -66,7 +66,12 @@ class ScoringActor(errorReporter: ErrorReporter) extends Actor with LazyLogging 
   override def receive: PartialFunction[Any, Unit] = LoggingReceive {
 
     // For health checks in the cluster
-    case Ping(None) | Ping(Some("scoring")) => sender() ! Pong(Set("scoring"))
+    case Ping(role) if role.isEmpty || role.contains("scoring") =>
+      logger.info("Ping received")
+      sender() ! Pong(Set("scoring"))
+    case p: Ping =>
+      logger.warn("Unhandled ping received")
+      sender() ! s"Ping message $p does not match ScoringActor"
 
     case query @ ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
       logger.info(
