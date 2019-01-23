@@ -58,9 +58,13 @@ RUN chmod +x /opt/woken-validation/weaver-agent.sh \
 COPY src/main/python/pfa_eval.py /app/pfa/pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
 
-ENV BUGSNAG_KEY=c023faf8a616d9f2847f539b6cf241a9 \
-  PFA_EVALUATOR_BUGSNAG_KEY=3aa0cd3936adc7a07e086cec12b04e2c \
-  PFA_EVALUATOR_ROOT=/app/pfa
+ENV APP_NAME="Woken Worker" \
+    APP_TYPE="Scala" \
+    VERSION=$VERSION \
+    BUILD_DATE=$BUILD_DATE \
+    BUGSNAG_KEY=c023faf8a616d9f2847f539b6cf241a9 \
+    PFA_EVALUATOR_BUGSNAG_KEY=3aa0cd3936adc7a07e086cec12b04e2c \
+    PFA_EVALUATOR_ROOT=/app/pfa
 
 USER woken
 
