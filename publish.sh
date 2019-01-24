@@ -38,7 +38,8 @@ else
   DOCKER="sudo docker"
 fi
 
-tests=1
+# Integration tests are not yet available in this project
+tests=0
 for param in "$@"
 do
   if [ "--no-tests" == "$param" ]; then
@@ -50,7 +51,7 @@ done
 # Build
 echo "Build the project..."
 ./build.sh
-if [ $tests ]; then
+if [ $tests == 1 ]; then
   ./tests/test.sh
 fi
 echo "[ok] Done"
@@ -109,7 +110,7 @@ updated_version=$(bumpversion --dry-run --list patch | grep current_version | se
 # Build again to update the version
 echo "Build the project for distribution..."
 ./build.sh
-if [ $tests ]; then
+if [ $tests == 1 ]; then
   ./tests/test.sh
 fi
 echo "[ok] Done"
