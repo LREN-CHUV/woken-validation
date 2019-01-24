@@ -1,4 +1,6 @@
+.bloop/
 .idea/
+.settings/
 project/project/
 project/target/
 target/

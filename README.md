@@ -25,15 +25,20 @@ where the environment variables are:
 * WOKEN_PORT_8088_TCP_PORT: Port of Woken master server, default to 8088
 * LOG_LEVEL: Level for logs on standard output, default to WARNING
 * UDP_ARTERY: if set to true, enables UDP and Akka Artery for communication (experimental, not working yet)
+* RELEASE_STAGE: Release stage used when reporting errors to Bugsnag. Values are dev, staging, production
+* DATA_CENTER_LOCATION: Location of the datacenter, used when reporting errors to Bugsnag
+* CONTAINER_ORCHESTRATION: Container orchestration system used to execute the Docker containers. Values are mesos, docker-compose, kubernetes
 
 ## How to build
 
-Prerequisites: docker, captain
+You need the following software installed:
+
+* [Docker](https://www.docker.com/) 18.09 or better with docker-compose
 
 1. Run the build script
 
 ```sh
-./build.sh
+  ./build.sh
 ```
 It will build the scala project into a Docker container.
 

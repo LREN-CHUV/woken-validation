@@ -35,10 +35,6 @@ RUN sbt -mem 1500 test assembly
 
 FROM hbpmip/java-base:11.0.1-1
 
-ARG BUILD_DATE
-ARG VCS_REF
-ARG VERSION
-
 COPY docker/run.sh /
 COPY docker/weaver-agent.sh /opt/woken-validation/
 
@@ -57,6 +53,10 @@ RUN chmod +x /opt/woken-validation/weaver-agent.sh \
 
 COPY src/main/python/pfa_eval.py /app/pfa/pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
+
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
 
 ENV APP_NAME="Woken Worker" \
     APP_TYPE="Scala" \

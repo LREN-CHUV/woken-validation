@@ -1,9 +1,0 @@
-target_image:
-  build: Dockerfile
-  image: hbpmip/woken-validation
-  pre:
-    - echo "Building woken-validation image"
-  post:
-    - echo "Finished building woken-validation image"
-  test:
-    - tests/test.sh
