@@ -1,12 +1,5 @@
 # Verified with http://hadolint.lukasmartinelli.ch/
-
 FROM hbpmip/scala-base-build:1.2.6-6 as scala-build-env
-
-ARG BINTRAY_USER
-ARG BINTRAY_PASS
-
-ENV BINTRAY_USER=$BINTRAY_USER \
-    BINTRAY_PASS=$BINTRAY_PASS
 
 RUN apt-get update && apt-get install -y python2 python-pip \
     && pip2 install titus \
@@ -26,6 +19,7 @@ RUN sbt -mem 1500 compile
 COPY src/ /build/src/
 COPY docker/ /build/docker/
 COPY .git/ /build/.git/
+COPY .github/ /build/.github/
 COPY .circleci/ /build/.circleci/
 COPY .*.cfg .*ignore .*.yaml .*.conf *.md *.sh *.yml *.json Dockerfile LICENSE /build/
 
@@ -35,21 +29,24 @@ RUN sbt -mem 1500 test assembly
 
 FROM hbpmip/java-base:11.0.1-1
 
-COPY docker/run.sh /
-COPY docker/weaver-agent.sh /opt/woken-validation/
-
-RUN addgroup woken \
-    && adduser --system --disabled-password --uid 1000 --ingroup woken woken
-
-RUN apt-get update && apt-get install -y python2 python-pip curl \
-    && apt-get install -y build-essential gfortran python-dev \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python2 python-pip curl \
+        build-essential gfortran python-dev \
     && pip2 install numpy==1.15.4 titus==0.8.4 bugsnag==3.4.3 \
     && apt-get remove -y build-essential gfortran python-dev \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-RUN chmod +x /opt/woken-validation/weaver-agent.sh \
-    && /opt/woken-validation/weaver-agent.sh
+COPY docker/run.sh /opt/woken-validation/
+COPY docker/weaver-agent.sh /opt/woken-validation/
+
+RUN addgroup woken \
+    && adduser --system --disabled-password --uid 1000 --ingroup woken woken \
+    && chmod +x /opt/woken-validation/run.sh \
+    && ln -s /woken-validation/run.sh /run.sh \
+    && chown -R woken:woken /opt/woken \
+    && chmod +x /opt/woken/weaver-agent.sh \
+    && /opt/woken/weaver-agent.sh
 
 COPY src/main/python/pfa_eval.py /app/pfa/pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
@@ -58,15 +55,15 @@ ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
 
-ENV APP_NAME="Woken Worker" \
+USER woken
+ENV HOME=/home/woken \
+    APP_NAME="Woken Worker" \
     APP_TYPE="Scala" \
     VERSION=$VERSION \
     BUILD_DATE=$BUILD_DATE \
     BUGSNAG_KEY=c023faf8a616d9f2847f539b6cf241a9 \
     PFA_EVALUATOR_BUGSNAG_KEY=3aa0cd3936adc7a07e086cec12b04e2c \
     PFA_EVALUATOR_ROOT=/app/pfa
-
-USER woken
 
 WORKDIR /opt/woken-validation
 

@@ -1,5 +1,9 @@
 .credentials
 target/
 .idea/
+.bloop/
 *.log
 .ensime
+.ensime_cache/
+.vscode/
+*.log

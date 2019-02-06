@@ -1,17 +1,22 @@
 ---
 
-version: 2
+# Sample advanced CircleCI configuration: https://github.com/transcom/mymove/blob/master/.circleci/config.yml
+
+version: 2.1
 jobs:
   build:
     working_directory: ~/src
     docker:
-      - image: hbpmip/docker-compose-for-ci:17.06-1
+      - image: hbpmip/docker-compose-for-ci:17.06-2
     environment:
        - CIRCLECI: true
     steps:
       - setup_remote_docker:
           version: 17.06.0-ce
       - checkout
+      - restore_cache:
+          keys:
+            - pre-commit-dot-cache-{{ checksum ".pre-commit-config.yaml" }}
       - run:
           name: "Install requirements"
           command: |
@@ -21,14 +26,10 @@ jobs:
           name: "Validate code quality"
           command: |
             pre-commit run --all-files
+      - save_cache:
+          key: pre-commit-dot-cache-{{ checksum ".pre-commit-config.yaml" }}
+          paths:
+            - ~/.cache/pre-commit
       - run:
           name: "Build the project"
-          command: |
-            PATH=$PATH:/$HOME/.captain/bin/ ./build.sh
-      #- run:
-      #    name: "Test the project"
-      #    command: |
-      #      PATH=$PATH:/$HOME/.captain/bin/ ./tests/test.sh
-    notify:
-      webhooks:
-      - url: 'https://webhook.atomist.com/atomist/circle'
+          command: ./build.sh
