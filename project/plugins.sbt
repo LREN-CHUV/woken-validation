@@ -20,7 +20,7 @@ addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
 // Code Quality
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0") // scalastyle
 
-addSbtPlugin("org.wartremover"   % "sbt-wartremover" % "2.3.7") // Wartremover
+addSbtPlugin("org.wartremover"   % "sbt-wartremover" % "2.4.1") // Wartremover
 
 // Code formatter
 addSbtPlugin("com.lucidchart"    % "sbt-scalafmt"    % "1.15")

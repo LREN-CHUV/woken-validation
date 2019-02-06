@@ -62,11 +62,11 @@ lazy val library =
       val scalaCheck      = "1.14.0"
       val scalaTest       = "3.0.5"
       val scalaMock       = "4.1.0"
-      val akka            = "2.5.19"
+      val akka            = "2.5.20"
       val akkaHttp        = "10.1.7"
       val akkaHttpCors    = "0.3.4"
       val akkaManagement  = "0.20.0"
-      val kamon           = "1.1.4"
+      val kamon           = "1.1.5"
       val kamonAkka       = "1.1.3"
       val kamonAkkaRemote = "1.1.0"
       val kamonAkkaHttp   = "1.1.1"
@@ -75,11 +75,11 @@ lazy val library =
       val kamonSystemMetrics = "1.0.1"
       val kamonSigar      = "1.6.6-rev002"
       val sprayJson       = "1.3.5"
-      val cats            = "1.5.0"
+      val cats            = "1.6.0"
       val hadrian         = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
       val spark           = "2.0.2"
-      val wokenMessages   = "2.9.4"
+      val wokenMessages   = "2.9.5"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
