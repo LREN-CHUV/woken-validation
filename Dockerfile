@@ -2,7 +2,8 @@
 FROM hbpmip/scala-base-build:1.2.6-6 as scala-build-env
 
 RUN apt-get update && apt-get install -y python2 python-pip \
-    && pip2 install titus \
+    && pip2 install --upgrade pip setuptools wheel \
+    && pip2 install titus==0.8.4 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY src/main/python/pfa_eval.py /pfa_eval.py
@@ -31,8 +32,9 @@ FROM hbpmip/java-base:11.0.1-1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python2 python-pip curl \
-        build-essential gfortran python-dev \
-    && pip2 install numpy==1.15.4 titus==0.8.4 bugsnag==3.4.3 \
+        python-setuptools build-essential gfortran python-dev \
+    && pip2 install --upgrade pip setuptools wheel \
+    && pip2 install numpy==1.15.4 bugsnag==3.4.3 titus==0.8.4 \
     && apt-get remove -y build-essential gfortran python-dev \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
@@ -44,9 +46,9 @@ RUN addgroup woken \
     && adduser --system --disabled-password --uid 1000 --ingroup woken woken \
     && chmod +x /opt/woken-validation/run.sh \
     && ln -s /woken-validation/run.sh /run.sh \
-    && chown -R woken:woken /opt/woken \
-    && chmod +x /opt/woken/weaver-agent.sh \
-    && /opt/woken/weaver-agent.sh
+    && chown -R woken:woken /opt/woken-validation \
+    && chmod +x /opt/woken-validation/weaver-agent.sh \
+    && /opt/woken-validation/weaver-agent.sh
 
 COPY src/main/python/pfa_eval.py /app/pfa/pfa_eval.py
 COPY --from=scala-build-env /build/target/scala-2.11/woken-validation-all.jar /opt/woken-validation/woken-validation.jar
