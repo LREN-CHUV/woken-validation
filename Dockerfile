@@ -45,7 +45,7 @@ COPY docker/weaver-agent.sh /opt/woken-validation/
 RUN addgroup woken \
     && adduser --system --disabled-password --uid 1000 --ingroup woken woken \
     && chmod +x /opt/woken-validation/run.sh \
-    && ln -s /woken-validation/run.sh /run.sh \
+    && ln -s /opt/woken-validation/run.sh /run.sh \
     && chown -R woken:woken /opt/woken-validation \
     && chmod +x /opt/woken-validation/weaver-agent.sh \
     && /opt/woken-validation/weaver-agent.sh
