@@ -57,6 +57,21 @@ Execute the following commands to distribute Woken as a Docker container:
 
 # Acknowledgements
 
+## Funding
+
 This work has been funded by the European Union Seventh Framework Program (FP7/2007­2013) under grant agreement no. 604102 (HBP)
 
 This work is part of SP8 of the Human Brain Project (SGA1).
+
+## Sponsors
+
+Thanks for the generous support of [<img src="docs/bugsnag_logo_navy.png" height="16" alt="Bugsnag"></img>](https://bugsnag.com)
+who offered us a Standard plan allowing us to inspect and report efficiently errors in our software.
+
+## Tools
+
+We use the following tools for development:
+
+* IntelliJ IDEA
+* [<img src="docs/bugsnag_logo_navy.png" height="16" alt=Bugsnag></img>](https://bugsnag.com) to report errors in real time to our development team
+* [CircleCI](https://circleci.com) for continuous integration
