@@ -79,7 +79,7 @@ lazy val library =
       val hadrian         = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
       val spark           = "2.0.2"
-      val wokenMessages   = "2.9.8"
+      val wokenMessages   = "2.9.9"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
