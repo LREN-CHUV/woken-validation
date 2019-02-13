@@ -50,7 +50,7 @@ if [[ -n "$BUGSNAG_KEY" ]]; then
       \"builderName\": \"$USER\",
       \"sourceControl\": {
         \"provider\": \"github\",
-        \"repository\": \"https://github.com/LREN-CHUV/woken\",
+        \"repository\": \"https://github.com/LREN-CHUV/woken-validation\",
         \"revision\": \"$VCS_REF\"
       },
       \"metadata\": {}
