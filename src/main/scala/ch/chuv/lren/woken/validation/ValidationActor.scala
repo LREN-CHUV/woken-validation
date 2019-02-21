@@ -139,7 +139,10 @@ class ValidationActor(val pfaEvaluatorScript: String, errorReporter: ErrorReport
               val outputData: List[JsValue] = results.elements.toList
 
               logger.info(
-                s"Validation work for fold $fold, variable ${varInfo.code} done. Results are $outputData"
+                s"Validation work for fold $fold, variable ${varInfo.code} done."
+              )
+              logger.whenDebugEnabled(
+                logger.debug(s"Results are $outputData")
               )
               replyTo ! ValidationResult(fold, varInfo, Right(outputData))
             } else {
