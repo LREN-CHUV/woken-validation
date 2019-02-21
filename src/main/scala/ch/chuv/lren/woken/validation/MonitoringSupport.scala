@@ -20,20 +20,20 @@ package ch.chuv.lren.woken.validation
 import java.io.File
 
 import com.typesafe.config.Config
+import com.typesafe.scalalogging.Logger
 import kamon.Kamon
 import kamon.prometheus.PrometheusReporter
 import kamon.sigar.SigarProvisioner
 import kamon.system.SystemMetrics
 import kamon.zipkin.ZipkinReporter
 import org.hyperic.sigar.{ Sigar, SigarLoader }
-import org.slf4j.LoggerFactory
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
 
 object MonitoringSupport {
-  private val logger = LoggerFactory.getLogger("WokenValidation")
+  private val logger = Logger("WokenValidation")
 
   @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
   def startReporters(config: Config): Unit = {
@@ -43,8 +43,10 @@ object MonitoringSupport {
     if (kamonConfig.getBoolean("enabled") || kamonConfig.getBoolean("prometheus.enabled") || kamonConfig
           .getBoolean("zipkin.enabled")) {
 
-      logger.debug("Kamon configuration:")
-      logger.debug(kamonConfig.toString)
+      logger.whenDebugEnabled {
+        logger.debug("Kamon configuration:")
+        logger.debug(kamonConfig.toString)
+      }
       logger.info(s"Start monitoring...")
 
       Kamon.reconfigure(config)

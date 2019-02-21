@@ -3,11 +3,11 @@
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout
-          pattern="%d{HH:mm:ss.SSS} %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %logger{36} - %msg%n"/>
+          pattern="%d{HH:mm:ss.SSS} %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %logger{36} - %.1000msg%n"/>
     </Console>
   </Appenders>
   <Loggers>
-    <Root level="DEBUG">
+    <Root level="${sys:LOG_LEVEL:-DEBUG}">
       <AppenderRef ref="Console"/>
     </Root>
     <Logger name="akka.actor.LocalActorRefProvider(akka://woken)" level="INFO">
@@ -31,10 +31,19 @@
     <Logger name="akka.stream.impl" level="INFO">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.apache.spark" level="INFO">
+    <Logger name="org.apache.spark.storage.memory" level="${sys:SPARK_MEMORY_LOG_LEVEL:-WARN}">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.spark_project.jetty" level="INFO">
+    <Logger name="org.spark_project.jetty" level="WARN">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.spark" level="WARN">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.hadoop" level="WARN">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="io.netty" level="WARN">
       <AppenderRef ref="Console"/>
     </Logger>
   </Loggers>

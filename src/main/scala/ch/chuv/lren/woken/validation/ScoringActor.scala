@@ -21,7 +21,7 @@ import akka.actor.SupervisorStrategy.Restart
 import akka.actor.{ Actor, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
-import ch.chuv.lren.woken.errors.{ ErrorReporter, ScoringError }
+import ch.chuv.lren.woken.errors.{ ErrorReporter, SKIP_REPORTING_MARKER, ScoringError }
 import ch.chuv.lren.woken.messages.{ Ping, Pong }
 import com.typesafe.config.Config
 import ch.chuv.lren.woken.messages.validation.{ Score, ScoringQuery, ScoringResult }
@@ -75,7 +75,7 @@ class ScoringActor(errorReporter: ErrorReporter) extends Actor with LazyLogging 
 
     case query @ ScoringQuery(algorithmOutput, groundTruth, targetMetaData) =>
       logger.info(
-        s"Received scoring work for variable ${targetMetaData.label} of type ${targetMetaData.`type`}"
+        s"Scoring variable ${targetMetaData.label} of type ${targetMetaData.`type`}"
       )
       val replyTo = sender()
 
@@ -86,7 +86,7 @@ class ScoringActor(errorReporter: ErrorReporter) extends Actor with LazyLogging 
           logger.info("Scoring work complete")
           replyTo ! ScoringResult(Right(score))
         case Failure(e) =>
-          logger.error(e.toString, e)
+          logger.error(SKIP_REPORTING_MARKER, e.toString, e)
           val result = ScoringResult(Left(e.toString))
           errorReporter.report(e, ScoringError(query, Some(result)))
           replyTo ! result

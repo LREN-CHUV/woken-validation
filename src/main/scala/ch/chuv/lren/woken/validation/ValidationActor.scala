@@ -23,7 +23,7 @@ import akka.actor.SupervisorStrategy.Restart
 import akka.actor.{ Actor, OneForOneStrategy, Props }
 import akka.event.LoggingReceive
 import akka.routing.{ OptimalSizeExploringResizer, RoundRobinPool }
-import ch.chuv.lren.woken.errors.{ ErrorReporter, ValidationError }
+import ch.chuv.lren.woken.errors.{ ErrorReporter, SKIP_REPORTING_MARKER, ValidationError }
 import ch.chuv.lren.woken.messages.{ Ping, Pong }
 import com.opendatagroup.hadrian.jvmcompiler.PFAEngine
 import com.typesafe.config.Config
@@ -95,7 +95,6 @@ class ValidationActor(val pfaEvaluatorScript: String, errorReporter: ErrorReport
       sender() ! s"Ping message $p does not match ValidationActor"
 
     case query @ ValidationQuery(fold, model, data, varInfo) =>
-      logger.info("Received validation work!")
       // Reconstruct model using hadrian and validate over the provided data
       val replyTo = sender()
       Try[Unit] {
@@ -165,6 +164,8 @@ class ValidationActor(val pfaEvaluatorScript: String, errorReporter: ErrorReport
             processOutputFile.delete()
 
           case _ =>
+            logger.info(s"Validating model ${modelNameO.getOrElse("?")} using Hadrian")
+
             val json   = model.compactPrint
             val engine = PFAEngine.fromJson(json).head
 
@@ -177,17 +178,20 @@ class ValidationActor(val pfaEvaluatorScript: String, errorReporter: ErrorReport
                 .toList
 
             logger.info(
-              s"Validation work for fold $fold, variable ${varInfo.code} done. Results are $outputData"
+              s"Validation work for fold $fold, variable ${varInfo.code} done."
             )
+            logger.whenDebugEnabled(
+              logger.debug(s"Results are $outputData")
+            )
+
             replyTo ! ValidationResult(fold, varInfo, Right(outputData))
         }
 
       }.recover[Unit] {
         case e: Exception =>
-          logger.error(
-            s"Error while validating fold $fold, variable ${varInfo.code}: $e \nModel was: \n$model",
-            e
-          )
+          val msg =
+            s"Error ${e.getMessage} while validating fold $fold, variable ${varInfo.code}: $e \nModel was: \n$model"
+          logger.error(SKIP_REPORTING_MARKER, msg, e)
           val result = ValidationResult(fold, varInfo, Left(e.toString))
           errorReporter.report(e, ValidationError(query, Some(result)))
           replyTo ! result

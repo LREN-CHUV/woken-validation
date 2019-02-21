@@ -262,9 +262,11 @@ trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring with
                        label: NonEmptyList[JsValue],
                        session: SparkSession): S = {
 
-    logger.info(s"Classification scoring with")
-    logger.info(s"* Algorithm output: ${algorithmOutput.toList.mkString(",")}")
-    logger.info(s"* Label: ${label.toList.mkString(",")}")
+    logger.whenDebugEnabled {
+      logger.debug(s"Classification scoring with")
+      logger.debug(s"* Algorithm output: ${algorithmOutput.toList.mkString(",")}")
+      logger.debug(s"* Label: ${label.toList.mkString(",")}")
+    }
 
     // Convert to dataframe
     val data: NonEmptyList[(String, String)] = algorithmOutput
@@ -274,7 +276,9 @@ trait ClassificationScoring[S <: ClassificationScoreHolder] extends Scoring with
       })
 
     val labelsMap = enumeration.zipWithIndex.map({ case (x, i) => (x, i.toDouble) }).toMap
-    logger.info(s"* LabelsMap: $labelsMap")
+    logger.whenDebugEnabled(
+      logger.debug(s"* LabelsMap: $labelsMap")
+    )
 
     val df = session
       .createDataFrame(
