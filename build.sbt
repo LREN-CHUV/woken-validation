@@ -78,7 +78,7 @@ lazy val library =
       val cats            = "1.6.0"
       val hadrian         = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
-      val spark           = "2.0.2"
+      val spark           = "2.4.0"
       val wokenMessages   = "3.0.1"
     }
     object ExclusionRules {
