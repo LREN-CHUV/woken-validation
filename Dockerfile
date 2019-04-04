@@ -1,5 +1,5 @@
 # Verified with http://hadolint.lukasmartinelli.ch/
-FROM hbpmip/scala-base-build:1.2.6-6 as scala-build-env
+FROM hbpmip/scala-base-build:1.2.6-8 as scala-build-env
 
 RUN apt-get update && apt-get install -y python2 python-pip \
     && pip2 install --upgrade pip setuptools wheel \
