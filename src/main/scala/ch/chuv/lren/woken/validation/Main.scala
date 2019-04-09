@@ -20,10 +20,11 @@ package ch.chuv.lren.woken.validation
 import akka.actor.{ ActorSystem, DeadLetter }
 import akka.cluster.Cluster
 import akka.cluster.pubsub.{ DistributedPubSub, DistributedPubSubMediator }
-import akka.http.scaladsl.model.{ StatusCodes, Uri }
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{ HttpApp, Route }
-import akka.management.cluster.{ ClusterHealthCheck, ClusterHttpManagementRoutes }
-import akka.management.http.ManagementRouteProviderSettings
+import akka.management.HealthCheckSettings
+import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes
+import akka.management.scaladsl.HealthChecks
 import akka.stream.ActorMaterializer
 import ch.chuv.lren.woken.errors._
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
@@ -34,7 +35,7 @@ import scala.concurrent.{ Await, ExecutionContextExecutor }
 import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import scala.language.postfixOps
-import scala.util.Try
+import scala.util.{ Failure, Success, Try }
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
 object Main extends App {
@@ -152,16 +153,40 @@ object Main extends App {
       }
     }
 
-    val clusterRoutes: Route = ClusterHttpManagementRoutes(cluster)
+    val clusterManagementRoutes: Route = ClusterHttpManagementRoutes.readOnly(cluster)
 
-    val healthCheckRoutes: Route = pathPrefix("cluster") {
-      new ClusterHealthCheck(cluster.system).routes(new ManagementRouteProviderSettings {
-        override def selfBaseUri: Uri = Uri./
-      })
+    private val settings: HealthCheckSettings = HealthCheckSettings(
+      system.settings.config.getConfig("akka.management.health-checks")
+    )
+
+    private val clusterHealthChecks = HealthChecks(cluster.system, settings)
+
+    private val healthCheckResponse: Try[Boolean] => Route = {
+      case Success(true) => complete(StatusCodes.OK)
+      case Success(false) =>
+        complete(StatusCodes.InternalServerError -> "Not Healthy")
+      case Failure(t) =>
+        complete(
+          StatusCodes.InternalServerError -> s"Health Check Failed: ${t.getMessage}"
+        )
     }
 
+    def clusterReady: Route = pathPrefix("cluster" / "ready") {
+      get {
+        onComplete(clusterHealthChecks.ready())(healthCheckResponse)
+      }
+    }
+
+    def clusterAlive: Route = pathPrefix("cluster" / "alive") {
+      get {
+        onComplete(clusterHealthChecks.alive())(healthCheckResponse)
+      }
+    }
+
+    val clusterHealthRoutes: Route = clusterReady ~ clusterAlive
+
     override def routes: Route =
-      cors()(healthRoute ~ readinessRoute ~ clusterRoutes ~ healthCheckRoutes)
+      cors()(healthRoute ~ readinessRoute ~ clusterManagementRoutes ~ clusterHealthRoutes)
 
   }
 
