@@ -33,3 +33,7 @@ jobs:
       - run:
           name: "Build the project"
           command: ./build.sh
+      - store_test_results:
+          path: target/test-results/
+      - store_artifacts:
+          path: target/test-results/
