@@ -27,6 +27,7 @@ import akka.management.cluster.scaladsl.ClusterHttpManagementRoutes
 import akka.management.scaladsl.HealthChecks
 import akka.stream.ActorMaterializer
 import ch.chuv.lren.woken.errors._
+import ch.chuv.lren.woken.utils.ConfigurationLoader
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.slf4j.LoggerFactory
@@ -49,20 +50,11 @@ object Main extends App {
   // 4. Custom configuration defined in application.conf and backed by reference.conf from the libraries
   //    for algorithms can be overriden by environment variables
   lazy val config: Config = {
-    val remotingConfig = ConfigFactory.parseResourcesAnySyntax("akka-remoting.conf").resolve()
-    val remotingImpl   = remotingConfig.getString("remoting.implementation")
-    ConfigFactory
-      .parseString("""
-          |akka {
-          |  actor.provider = cluster
-          |  extensions += "akka.cluster.pubsub.DistributedPubSub"
-          |}
-        """.stripMargin)
+    val appConfig = ConfigFactory
+      .parseResourcesAnySyntax("application.conf")
       .withFallback(ConfigFactory.parseResourcesAnySyntax("akka.conf"))
-      .withFallback(ConfigFactory.parseResourcesAnySyntax(s"akka-$remotingImpl-remoting.conf"))
       .withFallback(ConfigFactory.parseResourcesAnySyntax("kamon.conf"))
-      .withFallback(ConfigFactory.load())
-      .resolve()
+    ConfigurationLoader.appendClusterConfiguration(appConfig).resolve()
   }
 
   reportErrorsToBugsnag()
