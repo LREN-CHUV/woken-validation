@@ -9,4 +9,5 @@ exec ${JAVA} ${JAVA_OPTIONS} \
           -javaagent:/opt/woken-validation/aspectjweaver.jar \
           -Djava.library.path=/lib \
           -DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector \
-          -jar woken-validation.jar
+          -Daeron.term.buffer.length=100m \
+	  -jar woken-validation.jar
