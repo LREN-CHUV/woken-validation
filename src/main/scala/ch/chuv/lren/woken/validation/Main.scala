@@ -52,7 +52,6 @@ object Main extends App {
   lazy val config: Config = {
     val appConfig = ConfigFactory
       .parseResourcesAnySyntax("application.conf")
-      .withFallback(ConfigFactory.parseResourcesAnySyntax("akka.conf"))
       .withFallback(ConfigFactory.parseResourcesAnySyntax("kamon.conf"))
     ConfigurationLoader.appendClusterConfiguration(appConfig).resolve()
   }
