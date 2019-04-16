@@ -56,6 +56,7 @@ object Main extends App {
     ConfigurationLoader.appendClusterConfiguration(appConfig).resolve()
   }
 
+  println(config)
   reportErrorsToBugsnag()
   MonitoringSupport.startReporters(config)
 
