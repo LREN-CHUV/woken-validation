@@ -66,7 +66,7 @@ lazy val library =
       val akkaHttp        = "10.1.8"
       val akkaHttpCors    = "0.4.0"
       val akkaManagement  = "1.0.0"
-      val kamon           = "1.1.5"
+      val kamon           = "1.1.6"
       val kamonAkka       = "1.1.3"
       val kamonAkkaRemote = "1.1.0"
       val kamonAkkaHttp   = "1.1.1"
@@ -79,7 +79,7 @@ lazy val library =
       val hadrian         = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
       val spark           = "2.0.2"
-      val wokenMessages   = "3.0.13"
+      val wokenMessages   = "3.0.14"
     }
     object ExclusionRules {
       val excludeIvy = ExclusionRule(organization = "org.apache.ivy")
