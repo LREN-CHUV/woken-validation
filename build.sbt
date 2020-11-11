@@ -74,7 +74,7 @@ lazy val library =
       val kamonReporter   = "1.0.0"
       val kamonSystemMetrics = "1.0.1"
       val kamonSigar      = "1.6.6-rev002"
-      val sprayJson       = "1.3.5"
+      val sprayJson       = "1.3.6"
       val cats            = "1.6.0"
       val hadrian         = "0.8.5.1"
       // TODO: Spark can be upgraded, but there is some work here
